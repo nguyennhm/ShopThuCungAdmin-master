@@ -1,0 +1,151 @@
+{
+  "project_info": {
+    "project_number": "925285074280",
+    "firebase_url": "https://shopthucung-8bd1d-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "shopthucung-8bd1d",
+    "storage_bucket": "shopthucung-8bd1d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:925285074280:android:5b9a4c1f0225f07f9202dd",
+        "android_client_info": {
+          "package_name": "com.example.shopthucung"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "925285074280-1h3g5ln7oj7a3mn1rvbhbsh54frlgpp2.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.shopthucung",
+            "certificate_hash": "68c60f65193d0c2693c8264d5aaebee8ffa8758d"
+          }
+        },
+        {
+          "client_id": "925285074280-amlkacen2fsrphopbc2ejl91ukc80qas.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.shopthucung",
+            "certificate_hash": "7afb8dd74497160777e0801b2c174b7cedbd9d45"
+          }
+        },
+        {
+          "client_id": "925285074280-32mfmi5dcbhngubthcur51jr36kqj17u.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCr1QFk3wASFutv-Q8pNyr07PxRkr7sw1g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "925285074280-32mfmi5dcbhngubthcur51jr36kqj17u.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:925285074280:android:1d8a67728fc9b9fe9202dd",
+        "android_client_info": {
+          "package_name": "com.example.shopthucungAdmin_master"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "925285074280-je5nste4hms0rs7is2hcg1jb6u4rs5i6.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.shopthucungAdmin_master",
+            "certificate_hash": "7afb8dd74497160777e0801b2c174b7cedbd9d45"
+          }
+        },
+        {
+          "client_id": "925285074280-32mfmi5dcbhngubthcur51jr36kqj17u.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCr1QFk3wASFutv-Q8pNyr07PxRkr7sw1g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "925285074280-32mfmi5dcbhngubthcur51jr36kqj17u.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:925285074280:android:9bfdc7b14918c0d59202dd",
+        "android_client_info": {
+          "package_name": "com.example.shopthucung_admin1"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "925285074280-32mfmi5dcbhngubthcur51jr36kqj17u.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCr1QFk3wASFutv-Q8pNyr07PxRkr7sw1g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "925285074280-32mfmi5dcbhngubthcur51jr36kqj17u.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:925285074280:android:839acb3e451030b79202dd",
+        "android_client_info": {
+          "package_name": "com.example.shopthucungadmin"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "925285074280-32mfmi5dcbhngubthcur51jr36kqj17u.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCr1QFk3wASFutv-Q8pNyr07PxRkr7sw1g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "925285074280-32mfmi5dcbhngubthcur51jr36kqj17u.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
