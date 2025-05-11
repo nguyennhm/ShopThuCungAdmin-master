@@ -41,11 +41,11 @@ fun NavGraph(navController: NavHostController) {
             ProductScreen(navController = navController)
         }
         composable(
-            route = "edit_product/{productId}",
-            arguments = listOf(navArgument("productId") { type = NavType.StringType })
+            route = "edit_product/{ten_sp}",
+            arguments = listOf(navArgument("ten_sp") { type = NavType.StringType })
         ) { backStackEntry ->
-            val productId = backStackEntry.arguments?.getString("productId")
-            ProductScreen(navController = navController, productId = productId)
+            val productName = backStackEntry.arguments?.getString("ten_sp")
+            ProductScreen(navController = navController, productName = productName)
         }
         composable("products") {
             // Placeholder cho màn hình Sản phẩm, hiện tại quay lại admin_dashboard

@@ -168,7 +168,7 @@ fun AdminDashboardScreen(navController: NavController, viewModel: AdminViewModel
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable {
-                                navController.navigate("edit_product/${product.firestoreId}")
+                                navController.navigate("edit_product/${product.ten_sp}")
                             },
                         colors = CardDefaults.cardColors(containerColor = Color.White),
                         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
@@ -177,7 +177,7 @@ fun AdminDashboardScreen(navController: NavController, viewModel: AdminViewModel
                             modifier = Modifier.padding(12.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            val imageUrl = product.anh.firstOrNull()
+                            val imageUrl = product.anh_sp.firstOrNull()
                             AsyncImage(
                                 model = imageUrl ?: "",
                                 contentDescription = product.ten_sp,
@@ -196,7 +196,7 @@ fun AdminDashboardScreen(navController: NavController, viewModel: AdminViewModel
                                 }
                             }
                             IconButton(onClick = {
-                                viewModel.deleteProduct(product.firestoreId) { success ->
+                                viewModel.deleteProduct(product.ten_sp) { success ->
                                     println(if (success) "Xóa thành công" else "Xóa thất bại")
                                 }
                             }) {

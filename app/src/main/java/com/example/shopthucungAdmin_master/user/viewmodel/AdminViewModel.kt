@@ -1,5 +1,6 @@
 package com.example.shopthucungAdmin_master.user.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.shopthucungAdmin_master.model.Product
@@ -45,17 +46,15 @@ class AdminViewModel(
                 viewModelScope.launch {
                     withContext(Dispatchers.IO) {
                         if (error != null) {
-                            println("AdminViewModel: Error fetching products: ${error.message}")
+                            Log.e("AdminViewModel", "Error fetching products: ${error.message}")
                             return@withContext
                         }
 
                         val productList = snapshot?.documents?.mapNotNull { doc ->
                             try {
-                                val product = doc.toObject(Product::class.java)
-                                product?.firestoreId = doc.id
-                                product
+                                doc.toObject(Product::class.java)
                             } catch (e: Exception) {
-                                println("AdminViewModel: Deserialization error for document ${doc.id}: ${e.message}")
+                                Log.e("AdminViewModel", "Error parsing product: ${e.message}")
                                 null
                             }
                         } ?: emptyList()
@@ -81,7 +80,7 @@ class AdminViewModel(
                         _totalRevenue.value = total
                     }
                 } catch (e: Exception) {
-                    println("AdminViewModel: Error fetching total revenue: ${e.message}")
+                    Log.e("AdminViewModel", "Error fetching total revenue: ${e.message}")
                     withContext(Dispatchers.Main) {
                         _totalRevenue.value = 0L
                     }
@@ -90,17 +89,29 @@ class AdminViewModel(
         }
     }
 
-    fun deleteProduct(productId: String, onComplete: (Boolean) -> Unit) {
+    fun deleteProduct(tenSp: String, onComplete: (Boolean) -> Unit) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 try {
-                    firestore.collection("product").document(productId).delete().await()
-                    println("AdminViewModel: Product deleted successfully: $productId")
-                    withContext(Dispatchers.Main) {
-                        onComplete(true)
+                    val snapshot = firestore.collection("product")
+                        .whereEqualTo("ten_sp", tenSp)
+                        .get().await()
+
+                    val documentId = snapshot.documents.firstOrNull()?.id
+                    if (documentId != null) {
+                        firestore.collection("product").document(documentId).delete().await()
+                        Log.d("AdminViewModel", "Deleted product with ten_sp: $tenSp")
+                        withContext(Dispatchers.Main) {
+                            onComplete(true)
+                        }
+                    } else {
+                        Log.d("AdminViewModel", "No product found with ten_sp: $tenSp")
+                        withContext(Dispatchers.Main) {
+                            onComplete(false)
+                        }
                     }
                 } catch (e: Exception) {
-                    println("AdminViewModel: Error deleting product $productId: ${e.message}")
+                    Log.e("AdminViewModel", "Error deleting product: ${e.message}")
                     withContext(Dispatchers.Main) {
                         onComplete(false)
                     }

@@ -85,4 +85,8 @@ dependencies {
     implementation("com.google.code.gson:gson:2.10.1")
     implementation("com.cloudinary:cloudinary-android:2.0.0")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
+
+//    cloud
+    implementation ("com.cloudinary:cloudinary-android:2.0.0")
+    implementation ("com.squareup.okhttp3:okhttp:4.12.0")
 }

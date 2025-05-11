@@ -5,9 +5,11 @@ import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,12 +22,14 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.shopthucungAdmin_master.user.viewmodel.ProductViewModel
 import com.example.shopthucungAdmin_master.user.viewmodel.ProductViewModelFactory
+import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.FirebaseFirestore
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProductScreen(
     navController: NavController,
-    productId: String? = null,
+    productName: String? = null,
     viewModel: ProductViewModel = viewModel(factory = ProductViewModelFactory(context = LocalContext.current))
 ) {
     val product by viewModel.product.collectAsState()
@@ -37,15 +41,14 @@ fun ProductScreen(
     var newImageUris by remember { mutableStateOf(listOf<Uri>()) }
     var isLoading by remember { mutableStateOf(false) }
 
-    LaunchedEffect(productId) {
-        if (productId != null) {
-            viewModel.loadProduct(productId)
+    LaunchedEffect(productName) {
+        if (productName != null) {
+            viewModel.loadProduct(productName)
         } else {
             viewModel.clearProduct()
         }
     }
 
-    // Cập nhật các giá trị khi product thay đổi (khi chỉnh sửa sản phẩm)
     LaunchedEffect(product) {
         product?.let {
             name = it.ten_sp
@@ -53,25 +56,43 @@ fun ProductScreen(
             quantity = it.soluong.toString()
             description = it.mo_ta
             discount = it.giam_gia.toString()
-            Log.d("ProductScreen", "Updated fields: name=$name, price=$price, quantity=$quantity, description=$description, discount=$discount")
-        } ?: run {
-            Log.d("ProductScreen", "Product is null, resetting fields")
-            name = ""
-            price = ""
-            quantity = ""
-            description = ""
-            discount = ""
         }
     }
 
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris ->
         newImageUris = uris
-        Log.d("ProductScreen", "Selected image URIs: $newImageUris")
+    }
+
+    // Hàm xóa ảnh khỏi sản phẩm dựa vào tên sản phẩm và URL ảnh
+    fun removeImageByTenSP(tenSp: String, imageUrl: String) {
+        val db = FirebaseFirestore.getInstance()
+        db.collection("product")
+            .whereEqualTo("ten_sp", tenSp)
+            .get()
+            .addOnSuccessListener { querySnapshot ->
+                if (!querySnapshot.isEmpty) {
+                    for (document in querySnapshot.documents) {
+                        document.reference.update("anh_sp", FieldValue.arrayRemove(imageUrl))
+                            .addOnSuccessListener {
+                                Log.d("ProductScreen", "Đã xóa ảnh thành công.")
+                                viewModel.loadProduct(tenSp) // Load lại sản phẩm sau khi xóa ảnh
+                            }
+                            .addOnFailureListener { e ->
+                                Log.e("ProductScreen", "Lỗi khi xóa ảnh: ", e)
+                            }
+                    }
+                } else {
+                    Log.w("ProductScreen", "Không tìm thấy sản phẩm với tên $tenSp")
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.e("ProductScreen", "Lỗi truy vấn Firestore: ", e)
+            }
     }
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text(if (productId == null) "Thêm sản phẩm" else "Chỉnh sửa sản phẩm") })
+            TopAppBar(title = { Text(if (productName == null) "Thêm sản phẩm" else "Chỉnh sửa sản phẩm") })
         }
     ) { padding ->
         Column(
@@ -118,43 +139,70 @@ fun ProductScreen(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.fillMaxWidth()
             )
+
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Ảnh hiện có (nếu đang chỉnh sửa)
-            product?.anh?.let { images ->
+            // Ảnh hiện có
+            product?.anh_sp?.let { images ->
                 if (images.isNotEmpty()) {
-                    Text("Ảnh hiện có:")
-                    LazyRow {
+                    Text("Ảnh sản phẩm đã lưu:")
+                    LazyColumn {
                         items(images) { imageUrl ->
-                            AsyncImage(
-                                model = imageUrl,
-                                contentDescription = "Ảnh sản phẩm",
-                                modifier = Modifier.size(100.dp).padding(4.dp)
-                            )
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                AsyncImage(
+                                    model = imageUrl,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(100.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                IconButton(
+                                    onClick = {
+                                        product?.ten_sp?.let { tenSp ->
+                                            removeImageByTenSP(tenSp, imageUrl)
+                                        }
+                                    }
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Remove,
+                                        contentDescription = "Xoá ảnh",
+                                        tint = MaterialTheme.colorScheme.error
+                                    )
+                                }
+                            }
                         }
                     }
-                    Spacer(modifier = Modifier.height(8.dp))
                 }
             }
 
+            Spacer(modifier = Modifier.height(16.dp))
+
             // Ảnh mới
             Button(onClick = { launcher.launch("image/*") }) {
-                Text("Chọn ảnh")
+                Text("Chọn ảnh thêm")
             }
+
             if (newImageUris.isNotEmpty()) {
-                Text("Ảnh đã chọn:")
-                LazyRow {
+                Text("Ảnh mới đã chọn:")
+                LazyColumn {
                     items(newImageUris) { uri ->
                         AsyncImage(
                             model = uri,
-                            contentDescription = "Ảnh đã chọn",
-                            modifier = Modifier.size(100.dp).padding(4.dp)
+                            contentDescription = null,
+                            modifier = Modifier
+                                .padding(4.dp)
+                                .size(100.dp)
                         )
                     }
                 }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -188,7 +236,6 @@ fun ProductScreen(
                     Text(if (isLoading) "Đang lưu..." else "Lưu")
                 }
             }
-
         }
     }
 }
