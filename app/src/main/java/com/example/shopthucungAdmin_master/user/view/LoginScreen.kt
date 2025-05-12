@@ -113,8 +113,8 @@ fun LoginScreen(navController: NavController, viewModel: LoginViewModel) {
                             viewModel.loginUser(email, password) { success, result ->
                                 isLoading = false
                                 if (success) {
-                                    println("LoginScreen: Login successful, navigating to admin_dashboard")
-                                    navController.navigate("admin_dashboard") {
+                                    println("LoginScreen: Login successful, navigating to main")
+                                    navController.navigate("main") {
                                         popUpTo(navController.graph.startDestinationId) { inclusive = true }
                                     }
                                 } else {

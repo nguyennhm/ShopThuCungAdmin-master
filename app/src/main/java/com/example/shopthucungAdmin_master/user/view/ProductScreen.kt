@@ -5,9 +5,8 @@ import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.*
@@ -17,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
@@ -24,6 +24,7 @@ import com.example.shopthucungAdmin_master.user.viewmodel.ProductViewModel
 import com.example.shopthucungAdmin_master.user.viewmodel.ProductViewModelFactory
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import androidx.compose.foundation.rememberScrollState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -90,6 +91,8 @@ fun ProductScreen(
             }
     }
 
+    val scrollState = rememberScrollState()
+
     Scaffold(
         topBar = {
             TopAppBar(title = { Text(if (productName == null) "Thêm sản phẩm" else "Chỉnh sửa sản phẩm") })
@@ -99,6 +102,7 @@ fun ProductScreen(
             modifier = Modifier
                 .padding(padding)
                 .padding(16.dp)
+                .verticalScroll(scrollState) // Thêm cuộn cho toàn bộ trang
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -145,9 +149,9 @@ fun ProductScreen(
             // Ảnh hiện có
             product?.anh_sp?.let { images ->
                 if (images.isNotEmpty()) {
-                    Text("Ảnh sản phẩm đã lưu:")
-                    LazyColumn {
-                        items(images) { imageUrl ->
+                    Text("Ảnh sản phẩm đã lưu:", fontSize = 16.sp)
+                    Column {
+                        images.forEach { imageUrl ->
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -187,9 +191,9 @@ fun ProductScreen(
             }
 
             if (newImageUris.isNotEmpty()) {
-                Text("Ảnh mới đã chọn:")
-                LazyColumn {
-                    items(newImageUris) { uri ->
+                Text("Ảnh mới đã chọn:", fontSize = 16.sp)
+                Column {
+                    newImageUris.forEach { uri ->
                         AsyncImage(
                             model = uri,
                             contentDescription = null,
