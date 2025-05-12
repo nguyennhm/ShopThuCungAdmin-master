@@ -13,6 +13,7 @@ import com.example.shopthucungAdmin_master.user.view.OrderDetailScreen
 import com.example.shopthucungAdmin_master.user.view.OrderListScreen
 import com.example.shopthucungAdmin_master.user.view.ProductScreen
 import com.example.shopthucungAdmin_master.user.view.RegisterScreen
+import com.example.shopthucungAdmin_master.user.view.UpdateQuantityScreen
 import com.example.shopthucungAdmin_master.user.viewmodel.LoginViewModel
 import com.example.shopthucungAdmin_master.user.viewmodel.RegisterViewModel
 import com.google.firebase.firestore.FirebaseFirestore
@@ -64,6 +65,10 @@ fun NavGraph(navController: NavHostController) {
         ) { backStackEntry ->
             val orderId = backStackEntry.arguments?.getString("orderId") ?: ""
             OrderDetailScreen(orderId = orderId, navController = navController)
+        }
+        composable("update_quantity/{productName}") { backStackEntry ->
+            val productName = backStackEntry.arguments?.getString("productName") ?: ""
+            UpdateQuantityScreen(navController, productName)
         }
 
     }

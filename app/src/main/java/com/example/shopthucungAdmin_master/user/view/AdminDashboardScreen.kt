@@ -60,10 +60,18 @@ fun AdminDashboardScreen(navController: NavController, viewModel: AdminViewModel
                         Icon(Icons.Default.List, contentDescription = "Sản phẩm", tint = Color.Blue)
                     }
                     IconButton(onClick = { navController.navigate("account") }) {
-                        Icon(Icons.Default.AccountCircle, contentDescription = "Tài khoản", tint = Color.Blue)
+                        Icon(
+                            Icons.Default.AccountCircle,
+                            contentDescription = "Tài khoản",
+                            tint = Color.Blue
+                        )
                     }
                     IconButton(onClick = { navController.navigate("orders") }) {
-                        Icon(Icons.Default.ShoppingCart, contentDescription = "Đặt hàng", tint = Color.Blue)
+                        Icon(
+                            Icons.Default.ShoppingCart,
+                            contentDescription = "Đặt hàng",
+                            tint = Color.Blue
+                        )
                     }
                 }
             }
@@ -83,12 +91,18 @@ fun AdminDashboardScreen(navController: NavController, viewModel: AdminViewModel
 //                    .fillMaxWidth()
                     .height(120.dp)
             ) {
-                Box(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+                Box(modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         IconButton(onClick = {
                             currentCardIndex = (currentCardIndex + 2) % 3
                         }) {
-                            Icon(Icons.Default.ArrowBack, contentDescription = "Previous", tint = Color.White)
+                            Icon(
+                                Icons.Default.ArrowBack,
+                                contentDescription = "Previous",
+                                tint = Color.White
+                            )
                         }
                         Spacer(modifier = Modifier.width(8.dp))
                         Column(modifier = Modifier.weight(1f)) {
@@ -97,11 +111,15 @@ fun AdminDashboardScreen(navController: NavController, viewModel: AdminViewModel
                                     Text("Doanh số", color = Color.White)
                                     Spacer(modifier = Modifier.height(8.dp))
                                     Text(
-                                        text = "${NumberFormat.getNumberInstance(Locale("vi", "VN")).format(totalRevenue)} VNĐ",
+                                        text = "${
+                                            NumberFormat.getNumberInstance(Locale("vi", "VN"))
+                                                .format(totalRevenue)
+                                        } VNĐ",
                                         style = MaterialTheme.typography.headlineMedium,
                                         color = Color.White
                                     )
                                 }
+
                                 1 -> {
                                     Text("Tổng số lượng", color = Color.White)
                                     Spacer(modifier = Modifier.height(8.dp))
@@ -111,6 +129,7 @@ fun AdminDashboardScreen(navController: NavController, viewModel: AdminViewModel
                                         color = Color.White
                                     )
                                 }
+
                                 2 -> {
                                     Text("Số lượng đã bán", color = Color.White)
                                     Spacer(modifier = Modifier.height(8.dp))
@@ -126,7 +145,11 @@ fun AdminDashboardScreen(navController: NavController, viewModel: AdminViewModel
                         IconButton(onClick = {
                             currentCardIndex = (currentCardIndex + 1) % 3
                         }) {
-                            Icon(Icons.Default.ArrowForward, contentDescription = "Next", tint = Color.White)
+                            Icon(
+                                Icons.Default.ArrowForward,
+                                contentDescription = "Next",
+                                tint = Color.White
+                            )
                         }
                     }
                 }
@@ -188,12 +211,23 @@ fun AdminDashboardScreen(navController: NavController, viewModel: AdminViewModel
                             Spacer(modifier = Modifier.width(12.dp))
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(product.ten_sp, style = MaterialTheme.typography.bodyLarge)
-                                Text("Giá: ${NumberFormat.getNumberInstance(Locale("vi", "VN")).format(product.gia_sp)} VNĐ")
+                                Text(
+                                    "Giá: ${
+                                        NumberFormat.getNumberInstance(Locale("vi", "VN"))
+                                            .format(product.gia_sp)
+                                    } VNĐ"
+                                )
                                 if (selectedTab == 0) {
                                     Text("Tồn kho: ${product.soluong - product.so_luong_ban}")
                                 } else {
                                     Text("Đã bán: ${product.so_luong_ban}")
                                 }
+                            }
+                            // Thêm ở trong mỗi item của LazyColumn
+                            IconButton(onClick = {
+                                navController.navigate("update_quantity/${product.ten_sp}")
+                            }) {
+                                Icon(Icons.Default.Add, contentDescription = "Thêm số lượng")
                             }
                             IconButton(onClick = {
                                 viewModel.deleteProduct(product.ten_sp) { success ->
@@ -202,6 +236,7 @@ fun AdminDashboardScreen(navController: NavController, viewModel: AdminViewModel
                             }) {
                                 Icon(Icons.Default.Delete, contentDescription = "Xóa")
                             }
+
                         }
                     }
                 }
@@ -212,7 +247,12 @@ fun AdminDashboardScreen(navController: NavController, viewModel: AdminViewModel
 
 
 @Composable
-fun TabButton(title: String, selected: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
+fun TabButton(
+    title: String,
+    selected: Boolean,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
     val background = if (selected) Color.White else Color.Transparent
     val textColor = if (selected) Color.Black else Color.Gray
 
