@@ -30,13 +30,7 @@ fun MainScreen(
     val currentRoute = navBackStackEntry?.destination?.route ?: "dashboard"
 
     Scaffold(
-        floatingActionButton = {
-            FloatingActionButton(onClick = {
-                navController.navigate("add_product") // Điều hướng toàn màn hình để thêm sản phẩm
-            }) {
-                Icon(Icons.Default.Add, contentDescription = "Thêm sản phẩm")
-            }
-        },
+
         bottomBar = {
             BottomAppBar {
                 Row(

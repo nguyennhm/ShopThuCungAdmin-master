@@ -40,6 +40,7 @@ fun OrderListScreen(
     var selectedPayment by remember { mutableStateOf<String?>(null) }
     var selectedDate by remember { mutableStateOf<Date?>(null) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    var shouldApplyFilter by remember { mutableStateOf(false) } // Thêm biến để kích hoạt bộ lọc
 
     val total = orders.size
     val totalProcessing = orders.count { it.status == "Đang xử lý" }
@@ -49,166 +50,209 @@ fun OrderListScreen(
     val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
     sdf.isLenient = false // Đảm bảo kiểm tra định dạng nghiêm ngặt
 
-    // Cập nhật bộ lọc khi có thay đổi
-    LaunchedEffect(ordersFrom, ordersTill, selectedStatus, searchOrderId, selectedPayment, selectedDate) {
-        // Kiểm tra định dạng ngày
-        val fromDate = try {
-            if (ordersFrom.isNotBlank()) sdf.parse(ordersFrom) else null
-        } catch (e: Exception) {
-            errorMessage = "Định dạng ngày 'Từ ngày' không hợp lệ (dd/MM/yyyy)"
-            null
-        }
+    // Áp dụng bộ lọc khi nhấn nút "Lọc"
+    LaunchedEffect(shouldApplyFilter) {
+        if (shouldApplyFilter) {
+            val fromDate = try {
+                if (ordersFrom.isNotBlank()) sdf.parse(ordersFrom) else null
+            } catch (e: Exception) {
+                errorMessage = "Định dạng ngày 'Từ ngày' không hợp lệ (dd/MM/yyyy)"
+                null
+            }
 
-        val toDate = try {
-            if (ordersTill.isNotBlank()) sdf.parse(ordersTill) else null
-        } catch (e: Exception) {
-            errorMessage = "Định dạng ngày 'Đến ngày' không hợp lệ (dd/MM/yyyy)"
-            null
-        }
+            val toDate = try {
+                if (ordersTill.isNotBlank()) sdf.parse(ordersTill) else null
+            } catch (e: Exception) {
+                errorMessage = "Định dạng ngày 'Đến ngày' không hợp lệ (dd/MM/yyyy)"
+                null
+            }
 
-        if (fromDate != null && toDate != null && fromDate.after(toDate)) {
-            errorMessage = "'Từ ngày' phải nhỏ hơn hoặc bằng 'Đến ngày'"
-        } else if (errorMessage != null) {
-            errorMessage = null
+            if (fromDate != null && toDate != null && fromDate.after(toDate)) {
+                errorMessage = "'Từ ngày' phải nhỏ hơn hoặc bằng 'Đến ngày'"
+            } else if (errorMessage != null) {
+                errorMessage = null
+            } else {
+                viewModel.applyFilters(
+                    searchOrderId,
+                    selectedStatus,
+                    selectedDate,
+                    ordersFrom,
+                    ordersTill
+                )
+            }
+            shouldApplyFilter = false // Reset sau khi áp dụng
         }
-
-        viewModel.applyFilters(searchOrderId, selectedStatus, selectedDate, ordersFrom, ordersTill)
     }
 
     LaunchedEffect(Unit) {
         viewModel.fetchOrders()
     }
 
-    Column(modifier = Modifier.fillMaxSize().padding(5.dp)) {
-        // Thanh lọc trên cùng
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+    Column(modifier = Modifier
+        .fillMaxSize()
+        .padding(5.dp)) {
+        // --- Thanh lọc ngày ---
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp)
+                .background(Color(0xFFF1F1F1), shape = RoundedCornerShape(8.dp))
+                .padding(12.dp)
         ) {
-            // Orders From và Orders Till
-            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 OutlinedTextField(
                     value = ordersFrom,
                     onValueChange = { ordersFrom = it },
-                    label = { Text("Từ ngày") },
-                    modifier = Modifier
-                        .width(120.dp)
-                        .height(56.dp),
-                    placeholder = { Text("dd/MM/yyyy") }
+                    label = { Text("Từ ngày", fontSize = 14.sp) },
+                    placeholder = { Text("dd/MM/yyyy", fontSize = 12.sp) },
+                    modifier = Modifier.weight(1f),
+                    singleLine = true,
+                    shape = RoundedCornerShape(12.dp)
                 )
 
                 OutlinedTextField(
                     value = ordersTill,
                     onValueChange = { ordersTill = it },
-                    label = { Text("Đến ngày") },
+                    label = { Text("Đến ngày", fontSize = 14.sp) },
+                    placeholder = { Text("dd/MM/yyyy", fontSize = 12.sp) },
+                    modifier = Modifier.weight(1f),
+                    singleLine = true,
+                    shape = RoundedCornerShape(12.dp)
+                )
+
+                Button(
+                    onClick = { shouldApplyFilter = true },
                     modifier = Modifier
-                        .width(120.dp)
-                        .height(56.dp),
-                    placeholder = { Text("dd/MM/yyyy") }
+                        .height(56.dp)
+                        .padding(top = 4.dp),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text("Lọc", fontSize = 14.sp)
+                }
+            }
+
+            // Thông báo lỗi nếu có
+            errorMessage?.let { message ->
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = message,
+                    color = Color.Red,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(start = 4.dp)
                 )
             }
         }
 
-        // Hiển thị thông báo lỗi nếu có
-        errorMessage?.let { message ->
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = message,
-                color = Color.Red,
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.padding(horizontal = 8.dp)
-            )
-        }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Thống kê
+        // --- Thống kê trạng thái đơn hàng ---
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             StatusStat("Tổng: $total", Color.LightGray, Modifier.weight(1f))
             StatusStat("Đang xử lý: $totalProcessing", Color(0xFFFFF176), Modifier.weight(1f))
-            StatusStat("Giao thành công: $totalDelivered", Color(0xFF81C784), Modifier.weight(1f))
+            StatusStat("Thành công: $totalDelivered", Color(0xFF81C784), Modifier.weight(1f))
             StatusStat("Đã hủy: $totalCanceled", Color(0xFFE57373), Modifier.weight(1f))
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
         // Bảng danh sách đơn hàng
-        LazyColumn {
-            // Header bảng
-            item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color(0xFF003087))
-                        .padding(8.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text("Name", color = Color.White, fontWeight = FontWeight.Bold, modifier = Modifier.weight(3f))
-                    Text("Method", color = Color.White, fontWeight = FontWeight.Bold, modifier = Modifier.weight(2f))
-                    Text("Date", color = Color.White, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-                    Text("Status", color = Color.White, fontWeight = FontWeight.Bold, modifier = Modifier.weight(5f))
-                }
-            }
-
-            // Nội dung bảng
+        LazyColumn(
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(bottom = 16.dp)
+        ) {
             items(orders) { order ->
-                Row(
+                Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 4.dp)
                         .clickable {
                             navController.navigate("order_detail/${order.orderId}")
                         },
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    shape = RoundedCornerShape(12.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                 ) {
-                    Text(order.product?.ten_sp ?: "N/A", modifier = Modifier.weight(1f))
-                    Text(order.paymentMethod, modifier = Modifier.weight(1f))
-                    Text(
-                        SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault())
-                            .format(order.timestamp.toDate()),
-                        modifier = Modifier.weight(1f)
-                    )
-                    Box(modifier = Modifier.weight(1f)) {
-                        var statusExpanded by remember { mutableStateOf(false) }
-                        val borderColor = when (order.status) {
-                            "Đang xử lý" -> Color(0xFFFFF176) // Màu vàng nhạt
-                            "Giao thành công" -> Color(0xFF81C784) // Màu xanh lá nhạt
-                            "Đã hủy" -> Color(0xFFE57373) // Màu đỏ nhạt
-                            else -> Color.Gray // Mặc định
-                        }
-                        OutlinedButton(
-                            onClick = { statusExpanded = true },
-                            border = ButtonDefaults.outlinedButtonBorder.copy(
-                                width = 1.dp,
-                                brush = SolidColor(borderColor)
-                            ),
+                    Column(modifier = Modifier.padding(12.dp)) {
+                        Text(
+                            text = order.product?.ten_sp ?: "N/A",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+
+                        Row(
+                            horizontalArrangement = Arrangement.SpaceBetween,
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text(order.status, color = Color.Black)
-                        }
-                        DropdownMenu(
-                            expanded = statusExpanded,
-                            onDismissRequest = { statusExpanded = false }
-                        ) {
-                            listOf("Đang xử lý", "Giao thành công", "Đã hủy").forEach { status ->
-                                DropdownMenuItem(
-                                    text = { Text(status) },
-                                    onClick = {
-                                        statusExpanded = false
-                                        viewModel.updateOrderStatus(
-                                            order.orderId,
-                                            status,
-                                            searchOrderId,
-                                            selectedStatus,
-                                            selectedDate
-                                        )
-                                    }
+                            Column {
+                                Text("Phương thức", fontSize = 12.sp, color = Color.Gray)
+                                Text(order.paymentMethod, fontSize = 14.sp)
+                            }
+
+                            Column {
+                                Text("Ngày", fontSize = 12.sp, color = Color.Gray)
+                                Text(
+                                    text = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                                        .format(order.timestamp.toDate()),
+                                    fontSize = 14.sp
                                 )
+                            }
+
+                            Column {
+                                Text("Trạng thái", fontSize = 12.sp, color = Color.Gray)
+                                Box {
+                                    var statusExpanded by remember { mutableStateOf(false) }
+
+                                    val backgroundColor = when (order.status) {
+                                        "Đang xử lý" -> Color(0xFFFFF176)
+                                        "Giao thành công" -> Color(0xFF81C784)
+                                        "Đã hủy" -> Color(0xFFE57373)
+                                        else -> Color.LightGray
+                                    }
+
+                                    Button(
+                                        onClick = { statusExpanded = true },
+                                        colors = ButtonDefaults.buttonColors(containerColor = backgroundColor),
+                                        modifier = Modifier.height(36.dp)
+                                    ) {
+                                        Text(order.status, color = Color.Black)
+                                    }
+
+                                    DropdownMenu(
+                                        expanded = statusExpanded,
+                                        onDismissRequest = { statusExpanded = false }
+                                    ) {
+                                        listOf(
+                                            "Đang xử lý",
+                                            "Giao thành công",
+                                            "Đã hủy"
+                                        ).forEach { status ->
+                                            DropdownMenuItem(
+                                                text = { Text(status) },
+                                                onClick = {
+                                                    statusExpanded = false
+                                                    viewModel.updateOrderStatus(
+                                                        order.orderId,
+                                                        status,
+                                                        searchOrderId,
+                                                        selectedStatus,
+                                                        selectedDate
+                                                    )
+                                                }
+                                            )
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -221,12 +265,25 @@ fun OrderListScreen(
 @Composable
 fun StatusStat(text: String, color: Color, modifier: Modifier = Modifier) {
     Surface(
-        modifier = modifier.padding(4.dp),
+        modifier = modifier,
         color = color,
-        shape = RoundedCornerShape(8.dp)
+        shape = RoundedCornerShape(12.dp),
+        shadowElevation = 4.dp
     ) {
-        Box(Modifier.padding(8.dp)) {
-            Text(text = text, style = MaterialTheme.typography.bodyMedium)
+        Box(
+            modifier = Modifier
+                .padding(vertical = 12.dp, horizontal = 8.dp)
+                .fillMaxWidth(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = text,
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium
+                ),
+                color = Color.Black
+            )
         }
     }
 }

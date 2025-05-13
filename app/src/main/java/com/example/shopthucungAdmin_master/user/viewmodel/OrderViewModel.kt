@@ -35,8 +35,8 @@ class OrderViewModel : ViewModel() {
                         currentProductNameFilter,
                         currentStatusFilter,
                         currentDateFilter,
-                        currentFromDateFilter?.let { SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(it) } ?: "",
-                        currentToDateFilter?.let { SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(it) } ?: ""
+                        currentFromDateFilter?.let { sdf.format(it) } ?: "",
+                        currentToDateFilter?.let { sdf.format(it) } ?: ""
                     )
                 }
                 .addOnFailureListener { exception ->
@@ -59,13 +59,13 @@ class OrderViewModel : ViewModel() {
         val fromDate = try {
             if (fromDateStr.isNotBlank()) sdf.parse(fromDateStr) else null
         } catch (e: Exception) {
-            null
+            null // Lỗi định dạng đã được xử lý trong OrderListScreen
         }
 
         val toDate = try {
             if (toDateStr.isNotBlank()) sdf.parse(toDateStr) else null
         } catch (e: Exception) {
-            null
+            null // Lỗi định dạng đã được xử lý trong OrderListScreen
         }
 
         // Cập nhật các biến trạng thái
@@ -102,7 +102,13 @@ class OrderViewModel : ViewModel() {
                                 if (order.orderId == orderId) order.copy(status = newStatus) else order
                             }
                             // Áp dụng lại bộ lọc với tham số hiện tại
-                            applyFilters(productName, status, date, currentFromDateFilter?.let { sdf.format(it) } ?: "", currentToDateFilter?.let { sdf.format(it) } ?: "")
+                            applyFilters(
+                                productName,
+                                status,
+                                date,
+                                currentFromDateFilter?.let { sdf.format(it) } ?: "",
+                                currentToDateFilter?.let { sdf.format(it) } ?: ""
+                            )
                         }
                         .addOnFailureListener { exception ->
                             println("Lỗi khi cập nhật trạng thái: ${exception.message}")

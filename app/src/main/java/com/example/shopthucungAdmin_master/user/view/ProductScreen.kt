@@ -212,7 +212,7 @@ fun ProductScreen(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Button(
-                    onClick = { navController.navigate("admin_dashboard") },
+                    onClick = { navController.popBackStack() },
                     modifier = Modifier.weight(1f)
                 ) {
                     Text("Quay lại")
