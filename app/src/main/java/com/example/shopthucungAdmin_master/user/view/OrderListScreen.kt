@@ -1,5 +1,6 @@
 package com.example.shopthucungAdmin_master.user.view
 
+import android.app.DatePickerDialog
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -40,7 +41,7 @@ fun OrderListScreen(
     var selectedPayment by remember { mutableStateOf<String?>(null) }
     var selectedDate by remember { mutableStateOf<Date?>(null) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
-    var shouldApplyFilter by remember { mutableStateOf(false) } // Thêm biến để kích hoạt bộ lọc
+    var shouldApplyFilter by remember { mutableStateOf(false) }
 
     val total = orders.size
     val totalProcessing = orders.count { it.status == "Đang xử lý" }
@@ -48,9 +49,8 @@ fun OrderListScreen(
     val totalCanceled = orders.count { it.status == "Đã hủy" }
 
     val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-    sdf.isLenient = false // Đảm bảo kiểm tra định dạng nghiêm ngặt
+    sdf.isLenient = false
 
-    // Áp dụng bộ lọc khi nhấn nút "Lọc"
     LaunchedEffect(shouldApplyFilter) {
         if (shouldApplyFilter) {
             val fromDate = try {
@@ -80,17 +80,23 @@ fun OrderListScreen(
                     ordersTill
                 )
             }
-            shouldApplyFilter = false // Reset sau khi áp dụng
+            shouldApplyFilter = false
         }
     }
 
     LaunchedEffect(Unit) {
-        viewModel.fetchOrders()
+        try {
+            viewModel.fetchOrders()
+        } catch (e: Exception) {
+            println("Lỗi khi fetch orders: ${e.message}")
+        }
     }
 
-    Column(modifier = Modifier
-        .fillMaxSize()
-        .padding(5.dp)) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(5.dp)
+    ) {
         // --- Thanh lọc ngày ---
         Column(
             modifier = Modifier
@@ -104,25 +110,48 @@ fun OrderListScreen(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                OutlinedTextField(
-                    value = ordersFrom,
-                    onValueChange = { ordersFrom = it },
-                    label = { Text("Từ ngày", fontSize = 14.sp) },
-                    placeholder = { Text("dd/MM/yyyy", fontSize = 12.sp) },
-                    modifier = Modifier.weight(1f),
-                    singleLine = true,
-                    shape = RoundedCornerShape(12.dp)
+                // Nút chọn ngày "Từ ngày" (giống OrderDetailScreen)
+                val calendar = Calendar.getInstance()
+                val fromDatePickerDialog = DatePickerDialog(
+                    context,
+                    { _, year, month, dayOfMonth ->
+                        calendar.set(year, month, dayOfMonth)
+                        ordersFrom = sdf.format(calendar.time)
+                    },
+                    calendar.get(Calendar.YEAR),
+                    calendar.get(Calendar.MONTH),
+                    calendar.get(Calendar.DAY_OF_MONTH)
                 )
 
-                OutlinedTextField(
-                    value = ordersTill,
-                    onValueChange = { ordersTill = it },
-                    label = { Text("Đến ngày", fontSize = 14.sp) },
-                    placeholder = { Text("dd/MM/yyyy", fontSize = 12.sp) },
-                    modifier = Modifier.weight(1f),
-                    singleLine = true,
-                    shape = RoundedCornerShape(12.dp)
+                OutlinedButton(
+                    onClick = { fromDatePickerDialog.show() },
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(56.dp)
+                ) {
+                    Text(if (ordersFrom.isNotEmpty()) ordersFrom else "Chọn ngày")
+                }
+
+                // Nút chọn ngày "Đến ngày" (giống OrderDetailScreen)
+                val tillDatePickerDialog = DatePickerDialog(
+                    context,
+                    { _, year, month, dayOfMonth ->
+                        calendar.set(year, month, dayOfMonth)
+                        ordersTill = sdf.format(calendar.time)
+                    },
+                    calendar.get(Calendar.YEAR),
+                    calendar.get(Calendar.MONTH),
+                    calendar.get(Calendar.DAY_OF_MONTH)
                 )
+
+                OutlinedButton(
+                    onClick = { tillDatePickerDialog.show() },
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(56.dp)
+                ) {
+                    Text(if (ordersTill.isNotEmpty()) ordersTill else "Chọn ngày")
+                }
 
                 Button(
                     onClick = { shouldApplyFilter = true },
@@ -147,7 +176,6 @@ fun OrderListScreen(
             }
         }
 
-
         Spacer(modifier = Modifier.height(16.dp))
 
         // --- Thống kê trạng thái đơn hàng ---
@@ -157,10 +185,10 @@ fun OrderListScreen(
                 .padding(horizontal = 8.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            StatusStat("Tổng: $total", Color.LightGray, Modifier.weight(1f))
-            StatusStat("Đang xử lý: $totalProcessing", Color(0xFFFFF176), Modifier.weight(1f))
-            StatusStat("Thành công: $totalDelivered", Color(0xFF81C784), Modifier.weight(1f))
-            StatusStat("Đã hủy: $totalCanceled", Color(0xFFE57373), Modifier.weight(1f))
+            StatusStat("Tổng\n$total", Color.LightGray, Modifier.weight(1f))
+            StatusStat("Đang xử lý\n$totalProcessing", Color(0xFFFFF59D), Modifier.weight(1f))
+            StatusStat("Đã xác nhận\n$totalDelivered", Color(0xFF90CAF9), Modifier.weight(1f))
+            StatusStat("Đang giao\n$totalCanceled", Color(0xFFFFB74D), Modifier.weight(1f))
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -184,26 +212,49 @@ fun OrderListScreen(
                 ) {
                     Column(modifier = Modifier.padding(12.dp)) {
                         Text(
-                            text = order.product?.ten_sp ?: "N/A",
+                            text = "Mã đơn: ${order.orderId}",
                             fontWeight = FontWeight.Bold,
-                            fontSize = 16.sp
+                            fontSize = 14.sp
                         )
-                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "Sản phẩm: ${order.product?.ten_sp ?: "Không rõ"}",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
 
                         Row(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Column {
-                                Text("Phương thức", fontSize = 12.sp, color = Color.Gray)
-                                Text(order.paymentMethod, fontSize = 14.sp)
+                                Text("Số lượng", fontSize = 12.sp, color = Color.Gray)
+                                Text("${order.quantity}", fontSize = 14.sp)
                             }
 
+                            Column {
+                                Text("Tổng tiền", fontSize = 12.sp, color = Color.Gray)
+                                Text("${order.totalPrice} đ", fontSize = 14.sp)
+                            }
+
+                            Column {
+                                Text("Thanh toán", fontSize = 12.sp, color = Color.Gray)
+                                Text(order.paymentMethod, fontSize = 14.sp)
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Row(
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
                             Column {
                                 Text("Ngày", fontSize = 12.sp, color = Color.Gray)
                                 Text(
                                     text = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-                                        .format(order.timestamp.toDate()),
+                                        .format(order.bookingdate?.toDate() ?: Date()),
                                     fontSize = 14.sp
                                 )
                             }
@@ -214,7 +265,9 @@ fun OrderListScreen(
                                     var statusExpanded by remember { mutableStateOf(false) }
 
                                     val backgroundColor = when (order.status) {
-                                        "Đang xử lý" -> Color(0xFFFFF176)
+                                        "Đang xử lý" -> Color(0xFFFFF59D)
+                                        "Đã xác nhận" -> Color(0xFF90CAF9)
+                                        "Đang giao hàng" -> Color(0xFFFFB74D)
                                         "Giao thành công" -> Color(0xFF81C784)
                                         "Đã hủy" -> Color(0xFFE57373)
                                         else -> Color.LightGray
@@ -234,6 +287,8 @@ fun OrderListScreen(
                                     ) {
                                         listOf(
                                             "Đang xử lý",
+                                            "Đã xác nhận",
+                                            "Đang giao hàng",
                                             "Giao thành công",
                                             "Đã hủy"
                                         ).forEach { status ->

@@ -1,5 +1,7 @@
 package com.example.shopthucungAdmin_master.user.view
 
+import android.app.DatePickerDialog
+import android.content.Context
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -8,13 +10,17 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.shopthucungAdmin_master.model.Order
-import com.example.shopthucungAdmin_master.utils.*
+import com.example.shopthucungAdmin_master.utils.formatCurrency
+import com.example.shopthucungAdmin_master.utils.formatTimestamp
+import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
+import java.text.SimpleDateFormat
+import java.util.*
 
 @Composable
 fun OrderDetailScreen(orderId: String, navController: NavController) {
@@ -34,15 +40,12 @@ fun OrderDetailScreen(orderId: String, navController: NavController) {
         }
     }
 
-    Spacer(modifier = Modifier.height(16.dp))
-
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(WindowInsets.systemBars.asPaddingValues()) // Tự động tránh các thanh trạng thái/điều hướng
+            .padding(WindowInsets.systemBars.asPaddingValues())
     ) {
-        Column {
-            // Nút quay lại đẹp hơn
+        Column(modifier = Modifier.padding(16.dp)) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
@@ -67,6 +70,13 @@ fun OrderDetailScreen(orderId: String, navController: NavController) {
             order?.let { orderData ->
                 var currentStatus by remember { mutableStateOf(orderData.status) }
 
+                val context = LocalContext.current
+                val calendar = remember { Calendar.getInstance() }
+                var showDatePicker by remember { mutableStateOf(false) }
+                var selectedDate by remember {
+                    mutableStateOf(orderData.deliverydate?.let { formatTimestamp(it) } ?: "")
+                }
+
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -82,15 +92,18 @@ fun OrderDetailScreen(orderId: String, navController: NavController) {
                         Text("💳 Thanh toán: ${orderData.paymentMethod}")
                         Spacer(modifier = Modifier.height(12.dp))
 
+                        // Trạng thái
                         Text("🚚 Trạng thái:", style = MaterialTheme.typography.bodyLarge)
                         Spacer(modifier = Modifier.height(4.dp))
 
                         var expanded by remember { mutableStateOf(false) }
 
                         val backgroundColor = when (currentStatus) {
-                            "Đang xử lý" -> Color(0xFFFFF176)
-                            "Giao thành công" -> Color(0xFF81C784)
-                            "Đã hủy" -> Color(0xFFE57373)
+                            "Đang xử lý" -> Color(0xFFFFF59D) // Vàng nhạt
+                            "Đã xác nhận" -> Color(0xFF90CAF9) // Xanh dương nhạt
+                            "Đang giao hàng" -> Color(0xFFFFB74D) // Cam nhạt
+                            "Giao thành công" -> Color(0xFF81C784)//Xanh lá
+                            "Đã hủy" -> Color(0xFFE57373)//Đỏ
                             else -> Color.LightGray
                         }
 
@@ -107,7 +120,7 @@ fun OrderDetailScreen(orderId: String, navController: NavController) {
                                 expanded = expanded,
                                 onDismissRequest = { expanded = false }
                             ) {
-                                listOf("Đang xử lý", "Giao thành công", "Đã hủy").forEach { status ->
+                                listOf("Đang xử lý", "Đã xác nhận", "Đang giao hàng").forEach { status ->
                                     DropdownMenuItem(
                                         text = { Text(status) },
                                         onClick = {
@@ -132,7 +145,42 @@ fun OrderDetailScreen(orderId: String, navController: NavController) {
                         }
 
                         Spacer(modifier = Modifier.height(12.dp))
-                        Text("🕒 Thời gian: ${formatTimestamp(orderData.timestamp)}")
+                        Text("🕒 Thời gian đặt: ${orderData.bookingdate?.let { formatTimestamp(it) } ?: "Không rõ"}")
+
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text("📅 Ngày giao dự kiến:", style = MaterialTheme.typography.bodyLarge)
+                        Spacer(modifier = Modifier.height(4.dp))
+
+                        OutlinedButton(onClick = { showDatePicker = true }) {
+                            Text(if (selectedDate.isNotEmpty()) selectedDate else "Chọn ngày")
+                        }
+
+                        if (showDatePicker) {
+                            DatePickerDialog(
+                                context,
+                                { _, year, month, dayOfMonth ->
+                                    showDatePicker = false
+                                    calendar.set(year, month, dayOfMonth)
+                                    val timestamp = Timestamp(calendar.time)
+
+                                    FirebaseFirestore.getInstance()
+                                        .collection("orders")
+                                        .document(orderId)
+                                        .update("deliveryDate", timestamp)
+                                        .addOnSuccessListener {
+                                            selectedDate = formatTimestamp(timestamp)
+                                            order = orderData.copy(deliverydate = timestamp)
+                                            println("✅ Cập nhật ngày giao dự kiến")
+                                        }
+                                        .addOnFailureListener {
+                                            println("❌ Lỗi cập nhật ngày giao: ${it.message}")
+                                        }
+                                },
+                                calendar.get(Calendar.YEAR),
+                                calendar.get(Calendar.MONTH),
+                                calendar.get(Calendar.DAY_OF_MONTH)
+                            ).show()
+                        }
                     }
                 }
             } ?: run {
@@ -143,4 +191,3 @@ fun OrderDetailScreen(orderId: String, navController: NavController) {
         }
     }
 }
-

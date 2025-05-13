@@ -20,9 +20,14 @@ class OrderViewModel : ViewModel() {
 
     private var currentProductNameFilter: String = ""
     private var currentStatusFilter: String? = null
-    private var currentDateFilter: Date? = null
+    private var currentBookingDateFilter: Date? = null
     private var currentFromDateFilter: Date? = null
     private var currentToDateFilter: Date? = null
+
+    // SimpleDateFormat chuyển đổi định dạng ngày
+    private val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).apply {
+        isLenient = false // Kiểm tra định dạng nghiêm ngặt
+    }
 
     fun fetchOrders() {
         viewModelScope.launch {
@@ -34,7 +39,7 @@ class OrderViewModel : ViewModel() {
                     applyFilters(
                         currentProductNameFilter,
                         currentStatusFilter,
-                        currentDateFilter,
+                        currentBookingDateFilter,
                         currentFromDateFilter?.let { sdf.format(it) } ?: "",
                         currentToDateFilter?.let { sdf.format(it) } ?: ""
                     )
@@ -49,13 +54,10 @@ class OrderViewModel : ViewModel() {
         productName: String,
         status: String?,
         date: Date?,
-        fromDateStr: String = "",
-        toDateStr: String = ""
+        fromDateStr: String = "", // Nhận chuỗi thay vì Date
+        toDateStr: String = ""    // Nhận chuỗi thay vì Date
     ) {
-        val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-        sdf.isLenient = false // Đảm bảo kiểm tra định dạng nghiêm ngặt
-
-        // Chuyển đổi chuỗi ngày thành Date, nếu không hợp lệ thì để null
+        // Chuyển đổi chuỗi ngày thành Date
         val fromDate = try {
             if (fromDateStr.isNotBlank()) sdf.parse(fromDateStr) else null
         } catch (e: Exception) {
@@ -71,7 +73,7 @@ class OrderViewModel : ViewModel() {
         // Cập nhật các biến trạng thái
         currentProductNameFilter = productName
         currentStatusFilter = status
-        currentDateFilter = date
+        currentBookingDateFilter = date
         currentFromDateFilter = fromDate
         currentToDateFilter = toDate
 
@@ -79,16 +81,22 @@ class OrderViewModel : ViewModel() {
         val filtered = _orderList.value.filter { order ->
             val matchProduct = productName.isBlank() || (order.product?.ten_sp?.contains(productName, ignoreCase = true) == true)
             val matchStatus = status == null || order.status == status
-            val matchDate = date == null || isSameDay(order.timestamp.toDate(), date)
-            val matchFromDate = fromDate == null || !order.timestamp.toDate().before(fromDate)
-            val matchToDate = toDate == null || !order.timestamp.toDate().after(toDate)
+            val matchDate = date == null || (order.bookingdate?.toDate()?.let { isSameDay(it, date) } == true)
+            val matchFromDate = fromDate == null || (order.bookingdate?.toDate()?.let { !it.before(fromDate) } == true)
+            val matchToDate = toDate == null || (order.bookingdate?.toDate()?.let { !it.after(toDate) } == true)
 
             matchProduct && matchStatus && matchDate && matchFromDate && matchToDate
         }
         _filteredOrders.value = filtered
     }
 
-    fun updateOrderStatus(orderId: String, newStatus: String, productName: String, status: String?, date: Date?) {
+    fun updateOrderStatus(
+        orderId: String,
+        newStatus: String,
+        productName: String,
+        status: String?,
+        bookingDate: Date?
+    ) {
         viewModelScope.launch {
             val docRef = db.collection("orders").whereEqualTo("orderId", orderId)
             docRef.get().addOnSuccessListener { snapshot ->
@@ -105,7 +113,7 @@ class OrderViewModel : ViewModel() {
                             applyFilters(
                                 productName,
                                 status,
-                                date,
+                                bookingDate,
                                 currentFromDateFilter?.let { sdf.format(it) } ?: "",
                                 currentToDateFilter?.let { sdf.format(it) } ?: ""
                             )
@@ -116,18 +124,17 @@ class OrderViewModel : ViewModel() {
                 } else {
                     println("Không tìm thấy đơn hàng với orderId: $orderId")
                 }
+            }.addOnFailureListener { exception ->
+                println("Lỗi khi tìm kiếm đơn hàng: ${exception.message}")
             }
         }
     }
 
-    private fun isSameDay(date1: Date, date2: Date): Boolean {
+    private fun isSameDay(date1: Date?, date2: Date?): Boolean {
+        if (date1 == null || date2 == null) return false
         val cal1 = Calendar.getInstance().apply { time = date1 }
         val cal2 = Calendar.getInstance().apply { time = date2 }
         return cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR) &&
                 cal1.get(Calendar.DAY_OF_YEAR) == cal2.get(Calendar.DAY_OF_YEAR)
-    }
-
-    companion object {
-        private val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
     }
 }
