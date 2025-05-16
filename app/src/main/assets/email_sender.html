@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Email Sender</title>
+    <<script>
+    function sendEmail(email, status, hoVaTen) {
+        const serviceID = 'service_b16rzj6';
+        const templateID = 'template_5q3n5lb';
+        const userID = 'UkX50Okdbt91zwqGm';
+
+        const templateParams = {
+            to_email: email,
+            status: status,
+            hoVaTen: hoVaTen,
+        };
+
+        fetch('https://api.emailjs.com/api/v1.0/email/send', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                service_id: serviceID,
+                template_id: templateID,
+                user_id: userID,
+                template_params: templateParams
+            })
+        })
+        .then(async response => {
+            const text = await response.text();
+            if (response.ok) {
+                console.log("✅ Email đã được gửi thành công");
+            } else {
+                console.error("❌ Gửi email thất bại:", text);
+            }
+            if (window.Android && typeof window.Android.onEmailResult === "function") {
+                window.Android.onEmailResult(response.ok ? "success" : "fail");
+            }
+        })
+        .catch(error => {
+            console.error("❌ Lỗi khi gửi email:", error);
+            if (window.Android && typeof window.Android.onEmailResult === "function") {
+                window.Android.onEmailResult("fail");
+            }
+        });
+    }
+</script>
+
+</head>
+<body>
+<h1>Email Sender</h1>
+</body>
+</html>

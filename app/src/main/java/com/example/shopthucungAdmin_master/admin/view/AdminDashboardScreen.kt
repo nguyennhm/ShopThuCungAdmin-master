@@ -1,4 +1,4 @@
-package com.example.shopthucungAdmin_master.user.view
+package com.example.shopthucungAdmin_master.admin.view
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -22,7 +22,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.shopthucungAdmin_master.R
-import com.example.shopthucungAdmin_master.user.viewmodel.AdminViewModel
+import com.example.shopthucungAdmin_master.admin.viewmodel.AdminViewModel
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -54,7 +54,7 @@ fun AdminDashboardScreen(
     ) { paddingValues ->
         Column(
             modifier = Modifier
-                .padding(16.dp)
+                .padding(8.dp)
                 .padding(paddingValues)
                 .fillMaxSize()
         ) {

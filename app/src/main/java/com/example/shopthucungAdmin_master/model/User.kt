@@ -10,5 +10,7 @@ data class User(
     @PropertyName("email") val email: String = "",
     @PropertyName("hoVaTen") val hoVaTen: String = "",
     @PropertyName("idUser") val idUser: String = "",
+    @PropertyName("role") val role: String = "",
+    @PropertyName("active") val active: Boolean = true,
     @PropertyName("matKhau") val matKhau: String = ""
 )

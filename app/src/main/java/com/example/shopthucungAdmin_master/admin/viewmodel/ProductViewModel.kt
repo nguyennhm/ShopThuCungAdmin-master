@@ -1,35 +1,27 @@
-package com.example.shopthucungAdmin_master.user.viewmodel
+package com.example.shopthucungAdmin_master.admin.viewmodel
 
 import android.content.Context
 import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.cloudinary.android.MediaManager
-import com.cloudinary.android.callback.ErrorInfo
-import com.cloudinary.android.callback.UploadCallback
 import com.example.shopthucungAdmin_master.model.Product
-import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.io.File
+import java.util.Date
 import java.util.UUID
-import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlin.coroutines.resume
 
 class ProductViewModel(
     private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance(),
     private val context: Context
 ) : ViewModel() {
+
     private val _product = MutableStateFlow<Product?>(null)
     val product: StateFlow<Product?> = _product
-
-    init {
-        // Bạn có thể khởi tạo CloudinaryUtils tại đây nếu cần
-    }
 
     fun loadProduct(tenSp: String) {
         viewModelScope.launch {
@@ -59,6 +51,7 @@ class ProductViewModel(
         quantity: Int,
         description: String,
         discount: Int,
+        idCategory: Int,
         newImageUris: List<Uri>,
         onComplete: () -> Unit
     ) {
@@ -68,7 +61,7 @@ class ProductViewModel(
                 for (uri in newImageUris) {
                     val filePath = getRealPathFromUri(context, uri)
                     if (filePath != null) {
-                        val imageUrl = CloudinaryUtils.uploadToCloudinary(uri, context) // Sử dụng CloudinaryUtils ở đây
+                        val imageUrl = CloudinaryUtils.uploadToCloudinary(uri, context)
                         if (imageUrl != null) {
                             newImageUrls.add(imageUrl)
                         } else {
@@ -85,10 +78,14 @@ class ProductViewModel(
                     return@launch
                 }
 
-                // Upload xong mới lưu
+                // Thêm ngày nhập hiện tại
+                val importDate = System.currentTimeMillis()
+
                 saveProductToFirestore(
                     name, price, quantity,
-                    description, discount, newImageUrls, onComplete
+                    description, discount,
+                    idCategory, newImageUrls,
+                    importDate, onComplete
                 )
             } catch (e: Exception) {
                 Log.e("ProductViewModel", "Lỗi khi lưu sản phẩm: ${e.message}")
@@ -103,7 +100,9 @@ class ProductViewModel(
         quantity: Int,
         description: String,
         discount: Int,
+        idCategory: Int,
         newImageUrls: List<String>,
+        importDate: Long,
         onComplete: () -> Unit
     ) {
         viewModelScope.launch {
@@ -112,6 +111,7 @@ class ProductViewModel(
                 val allImages = existingImages + newImageUrls
 
                 val productToSave: Product
+                val oldQuantity = _product.value?.soluong ?: 0
 
                 if (_product.value == null) {
                     val newId = getNextIdSanPham()
@@ -123,7 +123,8 @@ class ProductViewModel(
                         mo_ta = description,
                         giam_gia = discount,
                         id_sanpham = newId,
-                        so_luong_ban = 0
+                        so_luong_ban = 0,
+                        id_category = idCategory,
                     )
                 } else {
                     productToSave = _product.value!!.copy(
@@ -132,12 +133,25 @@ class ProductViewModel(
                         gia_sp = price,
                         soluong = quantity,
                         mo_ta = description,
-                        giam_gia = discount
+                        giam_gia = discount,
+                        id_category = idCategory,
                     )
                 }
 
-                Log.d("ProductViewModel", "Lưu dữ liệu Firestore: $productToSave")
+                // Lưu sản phẩm
                 firestore.collection("product").document(name).set(productToSave).await()
+
+                // Tính số lượng nhập thực tế (quantity mới - quantity cũ nếu tăng)
+                val quantityToAdd = quantity - oldQuantity
+                if (quantityToAdd > 0) {
+                    val updateInfo = mapOf(
+                        "ten_sp" to name,
+                        "so_luong_nhap" to quantityToAdd,
+                        "ngay_nhap" to Date(importDate)
+                    )
+                    firestore.collection("UpdateInfo").add(updateInfo).await()
+                }
+
                 onComplete()
             } catch (e: Exception) {
                 Log.e("ProductViewModel", "Lỗi khi lưu vào Firestore: ${e.message}")

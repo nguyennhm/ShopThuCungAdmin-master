@@ -1,4 +1,4 @@
-package com.example.shopthucungAdmin_master.user.view
+package com.example.shopthucungAdmin_master.admin.view
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -22,22 +22,23 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.shopthucungAdmin_master.user.viewmodel.LoginViewModel
+import com.example.shopthucungAdmin_master.admin.viewmodel.RegisterViewModel
 import kotlinx.coroutines.launch
 import com.example.shopthucungAdmin_master.R
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoginScreen(navController: NavController, viewModel: LoginViewModel) {
+fun RegisterScreen(navController: NavController, viewModel: RegisterViewModel) {
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
+    var hoVaTen by rememberSaveable { mutableStateOf("") }
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
 
-    // Lắng nghe thông báo từ LoginViewModel
+    // Lắng nghe thông báo từ RegisterViewModel
     val message by viewModel.message.collectAsState()
 
     // Hiển thị thông báo lỗi nếu có
@@ -74,8 +75,17 @@ fun LoginScreen(navController: NavController, viewModel: LoginViewModel) {
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text("Đăng nhập", fontSize = 32.sp, fontWeight = FontWeight.Bold, color = Color(0xFF4A90E2))
+                Text("Đăng ký", fontSize = 32.sp, fontWeight = FontWeight.Bold, color = Color(0xFF4A90E2))
                 Spacer(modifier = Modifier.height(24.dp))
+
+                OutlinedTextField(
+                    value = hoVaTen,
+                    onValueChange = { hoVaTen = it },
+                    label = { Text("Họ và tên") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
 
                 OutlinedTextField(
                     value = email,
@@ -108,18 +118,18 @@ fun LoginScreen(navController: NavController, viewModel: LoginViewModel) {
 
                 Button(
                     onClick = {
-                        if (email.isNotBlank() && password.isNotBlank()) {
+                        if (email.isNotBlank() && password.isNotBlank() && hoVaTen.isNotBlank()) {
                             isLoading = true
-                            viewModel.loginUser(email, password) { success, result ->
+                            viewModel.registerUser(email, password, hoVaTen) { success, result ->
                                 isLoading = false
                                 if (success) {
-                                    println("LoginScreen: Login successful, navigating to main")
-                                    navController.navigate("main") {
+                                    println("RegisterScreen: Registration successful, navigating to login")
+                                    navController.navigate("login") {
                                         popUpTo(navController.graph.startDestinationId) { inclusive = true }
                                     }
                                 } else {
                                     coroutineScope.launch {
-                                        snackbarHostState.showSnackbar(result ?: "Đăng nhập thất bại!")
+                                        snackbarHostState.showSnackbar(result ?: "Đăng ký thất bại!")
                                     }
                                 }
                             }
@@ -130,11 +140,11 @@ fun LoginScreen(navController: NavController, viewModel: LoginViewModel) {
                     modifier = Modifier.fillMaxWidth().height(48.dp),
                     enabled = !isLoading
                 ) {
-                    Text(if (isLoading) "Đang đăng nhập..." else "Đăng nhập", fontSize = 16.sp)
+                    Text(if (isLoading) "Đang đăng ký..." else "Đăng ký", fontSize = 16.sp)
                 }
 
-                TextButton(onClick = { if (!isLoading) navController.navigate("register") }) {
-                    Text("Chưa có tài khoản? Đăng ký")
+                TextButton(onClick = { if (!isLoading) navController.navigate("login") }) {
+                    Text("Đã có tài khoản? Đăng nhập")
                 }
             }
         }

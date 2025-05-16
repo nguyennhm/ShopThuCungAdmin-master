@@ -1,9 +1,10 @@
-package com.example.shopthucungAdmin_master.user.view
+package com.example.shopthucungAdmin_master.admin.view
 
 import android.net.Uri
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -20,11 +21,13 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import com.example.shopthucungAdmin_master.user.viewmodel.ProductViewModel
-import com.example.shopthucungAdmin_master.user.viewmodel.ProductViewModelFactory
+import com.example.shopthucungAdmin_master.admin.viewmodel.ProductViewModel
+import com.example.shopthucungAdmin_master.admin.viewmodel.ProductViewModelFactory
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import androidx.compose.foundation.rememberScrollState
+import com.example.shopthucungAdmin_master.admin.viewmodel.CategoryViewModel
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -42,6 +45,11 @@ fun ProductScreen(
     var newImageUris by remember { mutableStateOf(listOf<Uri>()) }
     var isLoading by remember { mutableStateOf(false) }
 
+    val categoryViewModel: CategoryViewModel = viewModel()
+    val categories by categoryViewModel.categories
+    var selectedCategory by remember { mutableStateOf(product?.id_category ?: "") }
+    var selectedCategoryName by remember { mutableStateOf("") }
+
     LaunchedEffect(productName) {
         if (productName != null) {
             viewModel.loadProduct(productName)
@@ -57,14 +65,20 @@ fun ProductScreen(
             quantity = it.soluong.toString()
             description = it.mo_ta
             discount = it.giam_gia.toString()
+            selectedCategory = it.id_category
         }
+    }
+
+    LaunchedEffect(categories, selectedCategory) {
+        categoryViewModel.loadCategories()
+        val selected = categories.find { it.id_category == selectedCategory }
+        selectedCategoryName = selected?.ten ?: ""
     }
 
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris ->
         newImageUris = uris
     }
 
-    // Hàm xóa ảnh khỏi sản phẩm dựa vào tên sản phẩm và URL ảnh
     fun removeImageByTenSP(tenSp: String, imageUrl: String) {
         val db = FirebaseFirestore.getInstance()
         db.collection("product")
@@ -76,7 +90,7 @@ fun ProductScreen(
                         document.reference.update("anh_sp", FieldValue.arrayRemove(imageUrl))
                             .addOnSuccessListener {
                                 Log.d("ProductScreen", "Đã xóa ảnh thành công.")
-                                viewModel.loadProduct(tenSp) // Load lại sản phẩm sau khi xóa ảnh
+                                viewModel.loadProduct(tenSp)
                             }
                             .addOnFailureListener { e ->
                                 Log.e("ProductScreen", "Lỗi khi xóa ảnh: ", e)
@@ -102,7 +116,7 @@ fun ProductScreen(
             modifier = Modifier
                 .padding(padding)
                 .padding(16.dp)
-                .verticalScroll(scrollState) // Thêm cuộn cho toàn bộ trang
+                .verticalScroll(scrollState)
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -144,9 +158,44 @@ fun ProductScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
+            Text("Danh mục", fontSize = 16.sp)
 
-            // Ảnh hiện có
+            var expanded by remember { mutableStateOf(false) }
+
+            ExposedDropdownMenuBox(
+                expanded = expanded,
+                onExpandedChange = { expanded = !expanded }
+            ) {
+                OutlinedTextField(
+                    value = selectedCategoryName,
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Chọn danh mục") },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
+                    modifier = Modifier
+                        .menuAnchor() // QUAN TRỌNG: giúp menu khớp vị trí
+                        .fillMaxWidth()
+                )
+
+                ExposedDropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false }
+                ) {
+                    categories.forEach { category ->
+                        DropdownMenuItem(
+                            text = { Text(category.ten) },
+                            onClick = {
+                                selectedCategory = category.id_category
+                                selectedCategoryName = category.ten
+                                expanded = false
+                            }
+                        )
+                    }
+                }
+            }
+
+
             product?.anh_sp?.let { images ->
                 if (images.isNotEmpty()) {
                     Text("Ảnh sản phẩm đã lưu:", fontSize = 16.sp)
@@ -185,7 +234,6 @@ fun ProductScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Ảnh mới
             Button(onClick = { launcher.launch("image/*") }) {
                 Text("Chọn ảnh thêm")
             }
@@ -228,6 +276,7 @@ fun ProductScreen(
                             description = description,
                             discount = discount.toIntOrNull() ?: 0,
                             newImageUris = newImageUris,
+                            idCategory = selectedCategory as Int,
                             onComplete = {
                                 isLoading = false
                                 navController.popBackStack()

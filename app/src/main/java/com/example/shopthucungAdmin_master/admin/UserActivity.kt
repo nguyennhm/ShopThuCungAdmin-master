@@ -1,4 +1,4 @@
-package com.example.shopthucungAdmin_master.user
+package com.example.shopthucungAdmin_master.admin
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -11,7 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
 import com.example.shopthucungAdmin_master.ui.theme.ShopThuCungTheme
-import com.example.shopthucungAdmin_master.user.navigation.NavGraph
+import com.example.shopthucungAdmin_master.admin.navigation.NavGraph
 import com.google.firebase.FirebaseApp
 
 class UserActivity : ComponentActivity() {

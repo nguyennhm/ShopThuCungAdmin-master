@@ -1,7 +1,6 @@
-package com.example.shopthucungAdmin_master.user.view
+package com.example.shopthucungAdmin_master.admin.view
 
 import android.app.DatePickerDialog
-import android.content.Context
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -19,7 +18,6 @@ import com.example.shopthucungAdmin_master.utils.formatTimestamp
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
-import java.text.SimpleDateFormat
 import java.util.*
 
 @Composable

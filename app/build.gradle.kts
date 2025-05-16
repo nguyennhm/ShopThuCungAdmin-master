@@ -3,6 +3,8 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     id("com.google.gms.google-services") version "4.4.2" apply true
+//    alias(libs.plugins.hilt)
+    alias(libs.plugins.kotlin.kapt)
 }
 
 android {
@@ -47,6 +49,7 @@ android {
 }
 
 dependencies {
+    // Compose & AndroidX
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -55,8 +58,41 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
-    implementation(libs.androidx.room.common.jvm)
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.1")
+    implementation("androidx.compose.material:material-icons-extended:1.5.4")
+
+    // Firebase
+    implementation(platform("com.google.firebase:firebase-bom:33.12.0"))
+    implementation("com.google.firebase:firebase-analytics")
+    implementation("com.google.firebase:firebase-firestore-ktx:24.10.0")
+    implementation("com.google.firebase:firebase-auth-ktx:22.3.1")
+    implementation("com.google.firebase:firebase-storage-ktx:20.3.0")
+
+    // Coil, QRCode, ZXing
+    implementation("io.coil-kt:coil-compose:2.4.0")
+    implementation("io.github.g0dkar:qrcode-kotlin:3.0.0")
+    implementation("com.google.zxing:core:3.5.3")
+
+    // Gson, OkHttp
+    implementation("com.google.code.gson:gson:2.10.1")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+
+    // Navigation
+    implementation("androidx.navigation:navigation-compose:2.7.5")
+
+    // Cloudinary
+    implementation("com.cloudinary:cloudinary-android:2.0.0")
+
+    // Gửi yêu cầu HTTP POST
+    implementation ("com.android.volley:volley:1.2.1")
+
+    // Ktor (gửi HTTP)
+    implementation("io.ktor:ktor-client-core:2.3.12")
+    implementation("io.ktor:ktor-client-okhttp:2.3.12")
+    implementation("io.ktor:ktor-client-content-negotiation:2.3.12")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.12")
+
+    // Test
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -64,29 +100,11 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-    implementation(platform("com.google.firebase:firebase-bom:33.12.0"))
-    implementation("com.google.firebase:firebase-analytics")
-    implementation("androidx.navigation:navigation-compose:2.7.5")
-    implementation("androidx.compose.material:material-icons-extended:1.5.4")
-    implementation("com.google.firebase:firebase-firestore-ktx:24.10.0")
-    implementation("com.google.firebase:firebase-auth-ktx:22.3.1")
-    implementation("com.google.firebase:firebase-storage-ktx:20.3.0")
-    implementation("io.coil-kt:coil-compose:2.4.0")
-    implementation("com.google.android.gms:play-services-auth:20.7.0")
-    implementation("com.sun.mail:android-mail:1.6.7")
-    implementation("com.sun.mail:android-activation:1.6.7")
-    implementation("androidx.compose.material3:material3:1.3.0")
-    implementation("io.github.g0dkar:qrcode-kotlin:3.0.0")
-    implementation("io.ktor:ktor-client-core:2.3.12")
-    implementation("io.ktor:ktor-client-okhttp:2.3.12")
-    implementation("io.ktor:ktor-client-content-negotiation:2.3.12")
-    implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.12")
-    implementation("com.google.zxing:core:3.5.3")
-    implementation("com.google.code.gson:gson:2.10.1")
-    implementation("com.cloudinary:cloudinary-android:2.0.0")
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
 
-//    cloud
-    implementation ("com.cloudinary:cloudinary-android:2.0.0")
-    implementation ("com.squareup.okhttp3:okhttp:4.12.0")
+//    implementation("com.google.dagger:hilt-android:2.50")
+//    kapt("com.google.dagger:hilt-compiler:2.50")
+//    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
+//    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
+//    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
+
 }

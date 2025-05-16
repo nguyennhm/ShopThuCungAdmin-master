@@ -1,4 +1,4 @@
-package com.example.shopthucungAdmin_master.user.viewmodel
+package com.example.shopthucungAdmin_master.admin.viewmodel
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
@@ -7,8 +7,7 @@ import com.example.shopthucungAdmin_master.model.Product
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
@@ -31,6 +30,40 @@ class AdminViewModel(
 
     private val _totalQuantitySold = MutableStateFlow(0)
     val totalQuantitySold: StateFlow<Int> = _totalQuantitySold
+
+    private val _selectedCategory = MutableStateFlow(-1)
+    val selectedCategory: StateFlow<Int> = _selectedCategory
+
+    private val _selectedFilterType = MutableStateFlow("Tất cả") // "Tất cả", "Đã bán", "Tồn kho"
+    val selectedFilterType: StateFlow<String> = _selectedFilterType
+
+    fun updateSelectedCategory(categoryId: Int) {
+        _selectedCategory.value = categoryId
+    }
+
+    fun updateSelectedFilterType(filterType: String) {
+        _selectedFilterType.value = filterType
+    }
+
+
+    // ✅ Lọc sản phẩm theo ID danh mục (Int) và filter type
+    val filteredProducts: StateFlow<List<Product>> = combine(
+        products,
+        selectedCategory,
+        selectedFilterType
+    ) { allProducts, categoryId, filterType ->
+        allProducts.filter { product ->
+            val matchCategory = categoryId == -1 || product.id_category == categoryId
+            val matchFilterType = when (filterType) {
+                "Tất cả" -> true
+                "Đã bán" -> (product.so_luong_ban ?: 0) > 0
+                "Tồn kho" -> (product.soluong ?: 0) > 0
+                else -> true
+            }
+            matchCategory && matchFilterType
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
 
     private var productListener: ListenerRegistration? = null
 

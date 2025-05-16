@@ -34,7 +34,7 @@
 
         <!-- MainActivity trong package: com.example.shopthucung.user -->
         <activity
-            android:name="com.example.shopthucungAdmin_master.user.UserActivity"
+            android:name="com.example.shopthucungAdmin_master.admin.UserActivity"
             android:exported="true"
             android:label="User - ShopThuCung"
             android:theme="@style/Theme.ShopThuCung">

@@ -1,4 +1,4 @@
-package com.example.shopthucungAdmin_master.user.viewmodel
+package com.example.shopthucungAdmin_master.admin.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

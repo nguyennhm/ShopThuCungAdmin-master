@@ -1,4 +1,4 @@
-package com.example.shopthucungAdmin_master.user.view
+package com.example.shopthucungAdmin_master.admin.view
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -11,11 +11,11 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.*
-import com.example.shopthucungAdmin_master.user.viewmodel.AdminViewModel
+import com.example.shopthucungAdmin_master.admin.viewmodel.AdminViewModel
+import com.example.shopthucungAdmin_master.admin.viewmodel.BannerViewModel
+import com.example.shopthucungAdmin_master.admin.viewmodel.CategoryViewModel
+import com.example.shopthucungAdmin_master.admin.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
-import com.example.shopthucungAdmin_master.user.viewmodel.BannerViewModel
-import com.example.shopthucungAdmin_master.user.view.BannerScreen
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,15 +30,15 @@ fun MainScreen(
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
-    // Các mục điều hướng
-    // Cập nhật danh sách drawerItems
+    // Danh sách mục điều hướng trong drawer
     val drawerItems = listOf(
         DrawerItem("dashboard", "Sản phẩm", Icons.Default.List),
         DrawerItem("orders", "Đơn hàng", Icons.Default.ShoppingCart),
         DrawerItem("banner", "Banner", Icons.Default.Image),
-        DrawerItem("account", "Tài khoản", Icons.Default.AccountCircle)
+        DrawerItem("category", "Danh mục", Icons.Default.Category),
+        DrawerItem("users", "Tài khoản người dùng", Icons.Default.Person),
+        DrawerItem("statistics", "Thống kê", Icons.Default.BarChart)
     )
-
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -60,7 +60,6 @@ fun MainScreen(
                                 popUpTo(nestedNavController.graph.startDestinationId)
                                 launchSingleTop = true
                             }
-                            // Đóng drawer sau khi chọn
                             scope.launch { drawerState.close() }
                         },
                         icon = { Icon(item.icon, contentDescription = item.label) },
@@ -73,8 +72,10 @@ fun MainScreen(
         val titleText = when (currentRoute) {
             "dashboard" -> "Sản phẩm"
             "orders" -> "Đơn hàng"
-            "account" -> "Tài khoản"
             "banner" -> "Banner"
+            "category" -> "Danh mục"
+            "users" -> "Tài khoản người dùng"
+            "statistics" -> "Thống kê"
             else -> "Quản trị Shop"
         }
 
@@ -91,8 +92,7 @@ fun MainScreen(
                     }
                 )
             }
-        )
-        { padding ->
+        ) { padding ->
             NavHost(
                 navController = nestedNavController,
                 startDestination = "dashboard",
@@ -107,19 +107,28 @@ fun MainScreen(
                 composable("orders") {
                     OrderListScreen(navController = navController, viewModel = viewModel())
                 }
-                composable("account") {
-                    AccountScreen()
-                }
                 composable("banner") {
                     BannerScreen(viewModel = viewModel<BannerViewModel>())
+                }
+                composable("category") {
+                    CategoryScreen(viewModel = viewModel<CategoryViewModel>())
+                }
+                composable("users") {
+                    UserListScreen(viewModel = viewModel<UserViewModel>())
+                }
+                composable("statistics") {
+                    StatisticsScreen()
                 }
             }
         }
     }
 }
 
-// Dữ liệu cho từng mục trong drawer
-data class DrawerItem(val route: String, val label: String, val icon: androidx.compose.ui.graphics.vector.ImageVector)
+data class DrawerItem(
+    val route: String,
+    val label: String,
+    val icon: androidx.compose.ui.graphics.vector.ImageVector
+)
 
 @Composable
 fun AccountScreen() {

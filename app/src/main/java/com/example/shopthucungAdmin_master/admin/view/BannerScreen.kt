@@ -1,9 +1,8 @@
-package com.example.shopthucungAdmin_master.user.view
+package com.example.shopthucungAdmin_master.admin.view
 
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -22,7 +21,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.example.shopthucungAdmin_master.model.Banner
-import com.example.shopthucungAdmin_master.user.viewmodel.BannerViewModel
+import com.example.shopthucungAdmin_master.admin.viewmodel.BannerViewModel
 //import com.example.shopthucungAdmin_master.utils.CloudinaryUtils
 import kotlinx.coroutines.launch
 
@@ -32,17 +31,10 @@ fun BannerScreen(viewModel: BannerViewModel = viewModel()) {
     val coroutineScope = rememberCoroutineScope()
 
     var newStatus by remember { mutableStateOf("Bật") }
+    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
 
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-        uri?.let {
-            coroutineScope.launch {
-                val uploadedUrl = CloudinaryUtils.uploadToCloudinary(it, context)
-                if (uploadedUrl != null) {
-                    val newId = (viewModel.banners.maxOfOrNull { it.id_banner } ?: 0) + 1
-                    viewModel.addBanner(Banner(newId, uploadedUrl, newStatus))
-                }
-            }
-        }
+        selectedImageUri = uri
     }
 
     Column(modifier = Modifier.padding(16.dp)) {
@@ -61,8 +53,7 @@ fun BannerScreen(viewModel: BannerViewModel = viewModel()) {
                     elevation = CardDefaults.cardElevation(4.dp)
                 ) {
                     Row(
-                        modifier = Modifier
-                            .padding(12.dp),
+                        modifier = Modifier.padding(12.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
@@ -131,6 +122,39 @@ fun BannerScreen(viewModel: BannerViewModel = viewModel()) {
 
             Button(onClick = { launcher.launch("image/*") }) {
                 Text("Chọn ảnh")
+            }
+        }
+
+        // Hiển thị ảnh đã chọn (nếu có)
+        selectedImageUri?.let { uri ->
+            Spacer(modifier = Modifier.height(8.dp))
+            Text("Ảnh đã chọn:")
+            AsyncImage(
+                model = uri,
+                contentDescription = null,
+                modifier = Modifier
+                    .height(150.dp)
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(8.dp)),
+                contentScale = ContentScale.Crop
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Nút xác nhận
+            Button(
+                onClick = {
+                    coroutineScope.launch {
+                        val uploadedUrl = CloudinaryUtils.uploadToCloudinary(uri, context)
+                        if (uploadedUrl != null) {
+                            val newId = (viewModel.banners.maxOfOrNull { it.id_banner } ?: 0) + 1
+                            val banner = Banner(newId, uploadedUrl, newStatus)
+                            viewModel.saveBannerToFirestore(banner)
+                            selectedImageUri = null // reset sau khi lưu
+                        }
+                    }
+                }
+            ) {
+                Text("Xác nhận thêm banner")
             }
         }
     }
