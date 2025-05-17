@@ -286,8 +286,6 @@ fun OrderListScreen(
                                             "Đang xử lý",
                                             "Đã xác nhận",
                                             "Đang giao hàng",
-                                            "Giao thành công",
-                                            "Đã hủy"
                                         ).forEach { status ->
                                             DropdownMenuItem(
                                                 text = { Text(status) },

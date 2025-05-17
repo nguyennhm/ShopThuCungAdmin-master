@@ -27,8 +27,6 @@ class ProductViewModel(
         viewModelScope.launch {
             try {
                 val doc = firestore.collection("product").document(tenSp).get().await()
-                Log.d("ProductViewModel", "Tên sản phẩm: $tenSp")
-                Log.d("ProductViewModel", "Dữ liệu sản phẩm: ${doc.data}")
                 val productData = doc.toObject(Product::class.java)
                 if (productData != null) {
                     _product.value = productData
@@ -78,7 +76,6 @@ class ProductViewModel(
                     return@launch
                 }
 
-                // Thêm ngày nhập hiện tại
                 val importDate = System.currentTimeMillis()
 
                 saveProductToFirestore(
@@ -107,41 +104,29 @@ class ProductViewModel(
     ) {
         viewModelScope.launch {
             try {
-                val existingImages = _product.value?.anh_sp ?: emptyList()
+                val existingProduct = _product.value
+                val existingImages = existingProduct?.anh_sp ?: emptyList()
                 val allImages = existingImages + newImageUrls
 
-                val productToSave: Product
-                val oldQuantity = _product.value?.soluong ?: 0
+                val oldQuantity = existingProduct?.soluong ?: 0
+                val newId = existingProduct?.id_sanpham ?: getNextIdSanPham()
 
-                if (_product.value == null) {
-                    val newId = getNextIdSanPham()
-                    productToSave = Product(
-                        ten_sp = name,
-                        anh_sp = allImages,
-                        gia_sp = price,
-                        soluong = quantity,
-                        mo_ta = description,
-                        giam_gia = discount,
-                        id_sanpham = newId,
-                        so_luong_ban = 0,
-                        id_category = idCategory,
-                    )
-                } else {
-                    productToSave = _product.value!!.copy(
-                        anh_sp = allImages,
-                        ten_sp = name,
-                        gia_sp = price,
-                        soluong = quantity,
-                        mo_ta = description,
-                        giam_gia = discount,
-                        id_category = idCategory,
-                    )
-                }
+                val productToSave = Product(
+                    ten_sp = name,
+                    anh_sp = allImages,
+                    gia_sp = price,
+                    soluong = quantity,
+                    mo_ta = description,
+                    giam_gia = discount,
+                    id_sanpham = newId,
+                    so_luong_ban = existingProduct?.so_luong_ban ?: 0,
+                    id_category = idCategory
+                )
 
-                // Lưu sản phẩm
+                // Ghi đè sản phẩm cũ bằng document id = name
                 firestore.collection("product").document(name).set(productToSave).await()
 
-                // Tính số lượng nhập thực tế (quantity mới - quantity cũ nếu tăng)
+                // Ghi lại thông tin nhập hàng nếu có số lượng tăng thêm
                 val quantityToAdd = quantity - oldQuantity
                 if (quantityToAdd > 0) {
                     val updateInfo = mapOf(
@@ -150,6 +135,12 @@ class ProductViewModel(
                         "ngay_nhap" to Date(importDate)
                     )
                     firestore.collection("UpdateInfo").add(updateInfo).await()
+                }
+
+                // ✅ Nếu tên mới khác tên cũ => xóa document cũ theo tên cũ
+                if (existingProduct != null && existingProduct.ten_sp != name) {
+                    firestore.collection("product").document(existingProduct.ten_sp).delete().await()
+                    Log.d("ProductViewModel", "Đã xoá sản phẩm cũ: ${existingProduct.ten_sp}")
                 }
 
                 onComplete()

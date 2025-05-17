@@ -11,7 +11,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.shopthucungAdmin_master.admin.viewmodel.OrderViewModel
 import com.example.shopthucungAdmin_master.model.Order
 import com.example.shopthucungAdmin_master.utils.formatCurrency
 import com.example.shopthucungAdmin_master.utils.formatTimestamp
@@ -21,7 +23,7 @@ import kotlinx.coroutines.tasks.await
 import java.util.*
 
 @Composable
-fun OrderDetailScreen(orderId: String, navController: NavController) {
+fun OrderDetailScreen(orderId: String, navController: NavController, viewModel: OrderViewModel = viewModel()) {
     var order by remember { mutableStateOf<Order?>(null) }
 
     LaunchedEffect(orderId) {
@@ -90,18 +92,17 @@ fun OrderDetailScreen(orderId: String, navController: NavController) {
                         Text("💳 Thanh toán: ${orderData.paymentMethod}")
                         Spacer(modifier = Modifier.height(12.dp))
 
-                        // Trạng thái
                         Text("🚚 Trạng thái:", style = MaterialTheme.typography.bodyLarge)
                         Spacer(modifier = Modifier.height(4.dp))
 
                         var expanded by remember { mutableStateOf(false) }
 
                         val backgroundColor = when (currentStatus) {
-                            "Đang xử lý" -> Color(0xFFFFF59D) // Vàng nhạt
-                            "Đã xác nhận" -> Color(0xFF90CAF9) // Xanh dương nhạt
-                            "Đang giao hàng" -> Color(0xFFFFB74D) // Cam nhạt
-                            "Giao thành công" -> Color(0xFF81C784)//Xanh lá
-                            "Đã hủy" -> Color(0xFFE57373)//Đỏ
+                            "Đang xử lý" -> Color(0xFFFFF59D)
+                            "Đã xác nhận" -> Color(0xFF90CAF9)
+                            "Đang giao hàng" -> Color(0xFFFFB74D)
+                            "Giao thành công" -> Color(0xFF81C784)
+                            "Đã hủy" -> Color(0xFFE57373)
                             else -> Color.LightGray
                         }
 
@@ -124,18 +125,14 @@ fun OrderDetailScreen(orderId: String, navController: NavController) {
                                         onClick = {
                                             expanded = false
                                             currentStatus = status
-                                            FirebaseFirestore.getInstance()
-                                                .collection("orders")
-                                                .document(orderId)
-                                                .update("status", status)
-                                                .addOnSuccessListener {
-                                                    println("Đã cập nhật trạng thái: $status")
-                                                    order = orderData.copy(status = status)
-                                                }
-                                                .addOnFailureListener { e ->
-                                                    println("Lỗi cập nhật: ${e.message}")
-                                                    currentStatus = orderData.status
-                                                }
+                                            viewModel.updateOrderStatus(
+                                                orderId = orderData.orderId,
+                                                newStatus = status,
+                                                productName = orderData.product?.ten_sp ?: "",
+                                                status = null,
+                                                bookingDate = orderData.bookingdate?.toDate()
+                                            )
+                                            order = orderData.copy(status = status)
                                         }
                                     )
                                 }
