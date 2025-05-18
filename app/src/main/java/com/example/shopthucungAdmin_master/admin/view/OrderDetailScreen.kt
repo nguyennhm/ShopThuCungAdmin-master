@@ -107,34 +107,47 @@ fun OrderDetailScreen(orderId: String, navController: NavController, viewModel: 
                         }
 
                         Box {
-                            Button(
-                                onClick = { expanded = true },
-                                colors = ButtonDefaults.buttonColors(containerColor = backgroundColor),
-                                modifier = Modifier.width(200.dp)
-                            ) {
-                                Text(currentStatus, color = Color.Black)
-                            }
+                            val isFinalStatus = currentStatus == "Giao thành công" || currentStatus == "Đã hủy"
 
-                            DropdownMenu(
-                                expanded = expanded,
-                                onDismissRequest = { expanded = false }
-                            ) {
-                                listOf("Đang xử lý", "Đã xác nhận", "Đang giao hàng").forEach { status ->
-                                    DropdownMenuItem(
-                                        text = { Text(status) },
-                                        onClick = {
-                                            expanded = false
-                                            currentStatus = status
-                                            viewModel.updateOrderStatus(
-                                                orderId = orderData.orderId,
-                                                newStatus = status,
-                                                productName = orderData.product?.ten_sp ?: "",
-                                                status = null,
-                                                bookingDate = orderData.bookingdate?.toDate()
-                                            )
-                                            order = orderData.copy(status = status)
-                                        }
-                                    )
+                            if (!isFinalStatus) {
+                                Button(
+                                    onClick = { expanded = true },
+                                    colors = ButtonDefaults.buttonColors(containerColor = backgroundColor),
+                                    modifier = Modifier.width(200.dp)
+                                ) {
+                                    Text(currentStatus, color = Color.Black)
+                                }
+
+                                DropdownMenu(
+                                    expanded = expanded,
+                                    onDismissRequest = { expanded = false }
+                                ) {
+                                    listOf("Đang xử lý", "Đã xác nhận", "Đang giao hàng").forEach { status ->
+                                        DropdownMenuItem(
+                                            text = { Text(status) },
+                                            onClick = {
+                                                expanded = false
+                                                currentStatus = status
+                                                viewModel.updateOrderStatus(
+                                                    orderId = orderData.orderId,
+                                                    newStatus = status,
+                                                    productName = orderData.product?.ten_sp ?: "",
+                                                    status = null,
+                                                    bookingDate = orderData.bookingdate?.toDate()
+                                                )
+                                                order = orderData.copy(status = status)
+                                            }
+                                        )
+                                    }
+                                }
+                            } else {
+                                Button(
+                                    onClick = {}, // Không làm gì
+                                    enabled = false,
+//                                    colors = ButtonDefaults.buttonColors(containerColor = backgroundColor),
+                                    modifier = Modifier.width(200.dp)
+                                ) {
+                                    Text(currentStatus, color = Color.Black)
                                 }
                             }
                         }

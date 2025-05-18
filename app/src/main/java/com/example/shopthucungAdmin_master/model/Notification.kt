@@ -7,4 +7,6 @@ data class Notification(
     val orderId: String = "",
     val content: String = "",
     val Notdate: Timestamp? = Timestamp.now(),
+    val idUser: String = "",
+    val isReaded: Boolean = false
 )

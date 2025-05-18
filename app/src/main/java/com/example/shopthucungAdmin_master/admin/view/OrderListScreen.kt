@@ -259,9 +259,8 @@ fun OrderListScreen(
                             Column {
                                 Text("Trạng thái", fontSize = 12.sp, color = Color.Gray)
                                 Box {
-                                    var statusExpanded by remember { mutableStateOf(false) }
-
-                                    val backgroundColor = when (order.status) {
+                                    val currentStatus = order.status
+                                    val backgroundColor = when (currentStatus) {
                                         "Đang xử lý" -> Color(0xFFFFF59D)
                                         "Đã xác nhận" -> Color(0xFF90CAF9)
                                         "Đang giao hàng" -> Color(0xFFFFB74D)
@@ -270,36 +269,50 @@ fun OrderListScreen(
                                         else -> Color.LightGray
                                     }
 
-                                    Button(
-                                        onClick = { statusExpanded = true },
-                                        colors = ButtonDefaults.buttonColors(containerColor = backgroundColor),
-                                        modifier = Modifier.height(36.dp)
-                                    ) {
-                                        Text(order.status, color = Color.Black)
-                                    }
+                                    var statusExpanded by remember { mutableStateOf(false) }
 
-                                    DropdownMenu(
-                                        expanded = statusExpanded,
-                                        onDismissRequest = { statusExpanded = false }
-                                    ) {
-                                        listOf(
-                                            "Đang xử lý",
-                                            "Đã xác nhận",
-                                            "Đang giao hàng",
-                                        ).forEach { status ->
-                                            DropdownMenuItem(
-                                                text = { Text(status) },
-                                                onClick = {
-                                                    statusExpanded = false
-                                                    viewModel.updateOrderStatus(
-                                                        order.orderId,
-                                                        status,
-                                                        searchOrderId,
-                                                        selectedStatus,
-                                                        selectedDate
-                                                    )
-                                                }
-                                            )
+                                    if (currentStatus != "Giao thành công" && currentStatus != "Đã hủy") {
+                                        Button(
+                                            onClick = { statusExpanded = true },
+                                            colors = ButtonDefaults.buttonColors(containerColor = backgroundColor),
+                                            modifier = Modifier.height(36.dp)
+                                        ) {
+                                            Text(currentStatus, color = Color.Black)
+                                        }
+
+                                        DropdownMenu(
+                                            expanded = statusExpanded,
+                                            onDismissRequest = { statusExpanded = false }
+                                        ) {
+                                            listOf(
+                                                "Đang xử lý",
+                                                "Đã xác nhận",
+                                                "Đang giao hàng",
+                                            ).forEach { status ->
+                                                DropdownMenuItem(
+                                                    text = { Text(status) },
+                                                    onClick = {
+                                                        statusExpanded = false
+                                                        viewModel.updateOrderStatus(
+                                                            order.orderId,
+                                                            status,
+                                                            searchOrderId,
+                                                            selectedStatus,
+                                                            selectedDate
+                                                        )
+                                                    }
+                                                )
+                                            }
+                                        }
+                                    } else {
+                                        // Hiển thị trạng thái không tương tác
+                                        Button(
+                                            onClick = {}, // Không làm gì
+                                            enabled = false,
+//                                            colors = ButtonDefaults.buttonColors(containerColor = backgroundColor),
+                                            modifier = Modifier.height(36.dp)
+                                        ) {
+                                            Text(currentStatus, color = Color.Black)
                                         }
                                     }
                                 }

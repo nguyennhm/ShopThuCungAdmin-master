@@ -131,7 +131,37 @@ class OrderViewModel : ViewModel() {
                                             idNotification = nextId,
                                             orderId = orderId,
                                             content = "Đơn hàng '${order.product?.ten_sp ?: ""}' đang trên đường giao",
-                                            Notdate = Timestamp.now()
+                                            Notdate = Timestamp.now(),
+                                            idUser = order.userId
+                                        )
+
+                                        notificationsRef.document(nextId.toString()).set(notification)
+                                            .addOnSuccessListener {
+                                                println("✅ Đã tạo thông báo với id $nextId")
+                                            }
+                                            .addOnFailureListener {
+                                                println("❌ Lỗi tạo thông báo: ${it.message}")
+                                            }
+                                    } catch (e: Exception) {
+                                        println("❌ Lỗi tạo thông báo: ${e.message}")
+                                    }
+                                }
+                            } else if (newStatus == "Đã xác nhận" && order != null) {
+                                viewModelScope.launch {
+                                    try {
+                                        val notificationsRef = db.collection("notifications")
+                                        val snapshotNoti = notificationsRef.get().await()
+                                        val maxId = snapshotNoti.documents.mapNotNull {
+                                            it.getLong("idNotification")?.toInt()
+                                        }.maxOrNull() ?: 0
+                                        val nextId = maxId + 1
+
+                                        val notification = Notification(
+                                            idNotification = nextId,
+                                            orderId = orderId,
+                                            content = "Đơn hàng '${order.product?.ten_sp ?: ""}' đã được xác nhận",
+                                            Notdate = Timestamp.now(),
+                                            idUser = order.userId
                                         )
 
                                         notificationsRef.document(nextId.toString()).set(notification)
