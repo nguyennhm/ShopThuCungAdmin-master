@@ -42,7 +42,9 @@ fun UserListScreen(viewModel: UserViewModel = viewModel()) {
                         ) {
                             Text("Trạng thái: ${if (user.active) "Đang hoạt động" else "Bị khóa"}")
 
-                            DropdownMenuBox(user, viewModel)
+                            if (user.role == "user") {
+                                DropdownMenuBox(user, viewModel)
+                            }
                         }
                     }
                 }

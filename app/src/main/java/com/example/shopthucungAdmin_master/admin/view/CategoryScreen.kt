@@ -49,25 +49,25 @@ fun CategoryScreen(viewModel: CategoryViewModel = viewModel()) {
                             Text("Tên: ${category.ten}")
                         }
 
-                        Box {
-                            TextButton(onClick = { expanded = true }) {
-                                Text(category.status)
-                            }
-                            DropdownMenu(
-                                expanded = expanded,
-                                onDismissRequest = { expanded = false }
-                            ) {
-                                listOf("Bật", "Tắt").forEach { statusOption ->
-                                    DropdownMenuItem(
-                                        text = { Text(statusOption) },
-                                        onClick = {
-                                            viewModel.updateStatus(category.id_category.toString(), statusOption)
-                                            expanded = false
-                                        }
-                                    )
-                                }
-                            }
-                        }
+//                        Box {
+//                            TextButton(onClick = { expanded = true }) {
+//                                Text(category.status)
+//                            }
+//                            DropdownMenu(
+//                                expanded = expanded,
+//                                onDismissRequest = { expanded = false }
+//                            ) {
+//                                listOf("Bật", "Tắt").forEach { statusOption ->
+//                                    DropdownMenuItem(
+//                                        text = { Text(statusOption) },
+//                                        onClick = {
+//                                            viewModel.updateStatus(category.id_category.toString(), statusOption)
+//                                            expanded = false
+//                                        }
+//                                    )
+//                                }
+//                            }
+//                        }
 
                         IconButton(onClick = {
                             viewModel.deleteCategory(category.id_category.toString())

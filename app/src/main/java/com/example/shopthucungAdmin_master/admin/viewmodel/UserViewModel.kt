@@ -42,7 +42,8 @@ class UserViewModel : ViewModel() {
 
         if (user != null) {
             val email = user.email ?: return
-            val hoVaTen = user.hoVaTen ?: "Người dùng"  // Giả sử bạn có trường này trong model User
+            val hoVaTen =
+                user.hoVaTen ?: "Người dùng"  // Giả sử bạn có trường này trong model User
 
             db.collection("user").document(userId)
                 .update("active", newStatus)
@@ -55,8 +56,8 @@ class UserViewModel : ViewModel() {
         } else {
             println("❌ Không tìm thấy user với ID: $userId")
         }
-    }
 
+    }
 
 
     fun sendEmailWithWebView(context: Context, email: String, isActive: Boolean, hoVaTen: String) {
@@ -72,7 +73,10 @@ class UserViewModel : ViewModel() {
 
             webChromeClient = object : WebChromeClient() {
                 override fun onConsoleMessage(consoleMessage: ConsoleMessage): Boolean {
-                    Log.d("WEBVIEW_CONSOLE", "${consoleMessage.message()} -- from line ${consoleMessage.lineNumber()}")
+                    Log.d(
+                        "WEBVIEW_CONSOLE",
+                        "${consoleMessage.message()} -- from line ${consoleMessage.lineNumber()}"
+                    )
                     return true
                 }
             }

@@ -176,19 +176,19 @@ fun OrderListScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         // --- Thống kê trạng thái đơn hàng ---
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            StatusStat("Tổng\n$total", Color.LightGray, Modifier.weight(1f))
-            StatusStat("Đang xử lý\n$totalProcessing", Color(0xFFFFF59D), Modifier.weight(1f))
-            StatusStat("Đã xác nhận\n$totalDelivered", Color(0xFF90CAF9), Modifier.weight(1f))
-            StatusStat("Đang giao\n$totalCanceled", Color(0xFFFFB74D), Modifier.weight(1f))
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
+//        Row(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .padding(horizontal = 8.dp, vertical = 8.dp),
+//            horizontalArrangement = Arrangement.spacedBy(8.dp)
+//        ) {
+//            StatusStat("Tổng\n$total", Color.LightGray, Modifier.weight(1f))
+//            StatusStat("Đang xử lý\n$totalProcessing", Color(0xFFFFF59D), Modifier.weight(1f))
+//            StatusStat("Đã xác nhận\n$totalDelivered", Color(0xFF90CAF9), Modifier.weight(1f))
+//            StatusStat("Đang giao\n$totalCanceled", Color(0xFFFFB74D), Modifier.weight(1f))
+//        }
+//
+//        Spacer(modifier = Modifier.height(16.dp))
 
         // Bảng danh sách đơn hàng
         LazyColumn(

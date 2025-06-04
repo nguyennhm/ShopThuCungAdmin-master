@@ -38,7 +38,7 @@ class BannerViewModel : ViewModel() {
             if (it.id_banner == id) it.copy(status = newStatus) else it
         }
         // Cập nhật trên Firestore
-        firestore.collection("banner").document("banner_$id")
+        firestore.collection("banner").document("$id")
             .update("status", newStatus)
             .addOnFailureListener { exception ->
                 println("❌ Cập nhật trạng thái thất bại: ${exception.message}")
@@ -67,7 +67,7 @@ class BannerViewModel : ViewModel() {
     fun saveBannerToFirestore(banner: Banner) {
         val newId = if (banners.isEmpty()) 1 else banners.maxOf { it.id_banner } + 1
         val newBanner = banner.copy(id_banner = newId)
-        firestore.collection("banner").document("banner_$newId")
+        firestore.collection("banner").document("$newId")
             .set(newBanner)
             .addOnSuccessListener {
                 addBanner(newBanner) // Cập nhật danh sách local
